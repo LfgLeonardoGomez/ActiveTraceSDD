@@ -114,8 +114,8 @@ class TestBaseModelMixin:
             email="user@test.com",
             estado="activo",
         )
-        rol = Rol(tenant_id=default_tenant.id, nombre="Admin", descripcion="Admin role")
-        permiso = Permiso(tenant_id=default_tenant.id, nombre="read", modulo="users")
+        rol = Rol(tenant_id=default_tenant.id, codigo="ADMIN", nombre="Admin", descripcion="Admin role")
+        permiso = Permiso(tenant_id=default_tenant.id, codigo="users:read", nombre="read", modulo="users")
 
         db_session.add_all([user, rol, permiso])
         await db_session.commit()
@@ -152,6 +152,7 @@ class TestRoleAndPermissionModels:
         """RED: crear un Rol hereda BaseModelMixin y persiste."""
         rol = Rol(
             tenant_id=default_tenant.id,
+            codigo="PROFESOR",
             nombre="Profesor",
             descripcion="Rol docente",
         )
@@ -169,6 +170,7 @@ class TestRoleAndPermissionModels:
         """RED: crear un Permiso hereda BaseModelMixin y persiste."""
         permiso = Permiso(
             tenant_id=default_tenant.id,
+            codigo="calificaciones:ver",
             nombre="ver_calificaciones",
             modulo="calificaciones",
             descripcion="Ver notas",

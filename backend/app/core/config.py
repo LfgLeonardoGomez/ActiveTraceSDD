@@ -24,6 +24,12 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = Field(
         default=15, description="Expiración del access token en minutos"
     )
+    refresh_token_expire_days: int = Field(
+        default=7, description="Expiracion del refresh token en dias"
+    )
+    refresh_cookie_secure: bool = Field(
+        default=True, description="Flag Secure en cookie de refresh token"
+    )
 
     @field_validator("secret_key")
     @classmethod

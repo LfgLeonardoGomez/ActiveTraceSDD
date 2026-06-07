@@ -243,6 +243,7 @@ Las siguientes preguntas que existían en versiones anteriores de este documento
 | PA-04 | Login por email + contraseña; 2FA opcional (TOTP); recuperación por token de un solo uso; alta solo administrativa en MVP | [07_flujos_principales.md](07_flujos_principales.md), [`docs/ARQUITECTURA.md` §5.1](../docs/ARQUITECTURA.md) |
 | PA-06 | Fórmula de liquidación: Base (por rol) + Plus (por clave × rol); ver RN-31 a RN-38 | [05_reglas_de_negocio.md](05_reglas_de_negocio.md) |
 | PA-21 | Impersonación via parámetro de petición: eliminada. La impersonación legítima requiere permiso explícito, sesión diferenciada y auditoría completa | [03_actores_y_roles.md §4](03_actores_y_roles.md), [`docs/ARQUITECTURA.md`](../docs/ARQUITECTURA.md) |
+| ADR-008 / PA-25 | El rol NEXO se crea en el seed de RBAC con **matriz vacía** (sin permisos asignados). Su semántica operativa se definirá cuando se cierre PA-25 con el área de negocio. Hasta entonces, existe como catálogo pero no otorga capacidades. | `docs/ARQUITECTURA.md` §5.2, [03_actores_y_roles.md](03_actores_y_roles.md) |
 
 ---
 

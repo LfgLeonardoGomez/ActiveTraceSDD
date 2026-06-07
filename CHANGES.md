@@ -166,7 +166,11 @@ C-01 → C-02 → C-03 → C-04 → C-06 → C-07 → C-09 → C-10 → C-11 →
   - `docs/ARQUITECTURA.md` §6, §8 (tenant isolation, AES-256, ADR-002)
 
 ### [C-03] `auth-jwt-2fa`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado (2026-06-07)
+- **Notas post-implementación**:
+  - Deuda técnica: el endpoint `/api/auth/login` hace lookup de email sin scope de `tenant_id` (busca globalmente) porque el usuario aún no está autenticado al momento del login. Resolver cuando exista selector de tenant (portal por slug/dominio) — verificar en change final o refactor correspondiente.
+  - Refresh token transportado en cookie `HttpOnly` con `SameSite=Lax` (decisión de diseño OQ-02).
+  - Recuperación de password loggea token en consola (modo dev) hasta que exista worker de comunicaciones.
 - **Scope**:
   - `POST /api/auth/login` — email + password (Argon2id), JWT access 15min + refresh token con **rotación** (refresh usado se invalida). Claims mínimos: `user_id`, `tenant_id`, `roles`, `exp`.
   - `POST /api/auth/refresh` — rota refresh, emite nuevo par. `POST /api/auth/logout` — revoca sesión.
@@ -184,7 +188,12 @@ C-01 → C-02 → C-03 → C-04 → C-06 → C-07 → C-09 → C-10 → C-11 →
   - `docs/ARQUITECTURA.md` §5.1 (ADR-001 auth propio)
 
 ### [C-04] `rbac-permisos-finos`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado (2026-06-07)
+- **Notas post-implementación**:
+  - `require_permission` reemplazó el placeholder de C-03. Devuelve `PermissionContext` con `has_permission`, `is_propio`, `effective_permissions`.
+  - Matriz base seedeada en migración 002: 7 roles + 22 permisos. NEXO creado sin permisos (PA-25 pendiente).
+  - Seed asociado al primer tenant existente (C-01/C-02). Nuevos tenants se provisionarán con seed aparte (post-MVP).
+  - Patrón `(propio)`: el guard marca `is_propio=true`; el service/repository aplica el filtro de datos propios.
 - **Scope**:
   - Catálogo administrable: tablas `Rol`, `Permiso` (`modulo:accion`), matriz `RolPermiso` (datos, NO hardcode).
   - Roles del dominio seed: ALUMNO, TUTOR, PROFESOR, COORDINADOR, NEXO, ADMIN, FINANZAS.

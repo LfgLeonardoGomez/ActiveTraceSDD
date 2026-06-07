@@ -12,14 +12,12 @@ settings = Settings()
 
 
 def _reset_database():
-    """Limpia la base de datos de test para migraciones: drop all + borra alembic_version."""
+    """Limpia la base de datos de test para migraciones: drop schema public + recreate."""
     async def reset():
         engine = create_async_engine(settings.database_url, echo=False)
         async with engine.begin() as conn:
-            # Limpiar alembic_version para que los tests de migración partan de cero
-            await conn.execute(text("DROP TABLE IF EXISTS alembic_version"))
-            for tbl in reversed(list(Base.metadata.tables.keys())):
-                await conn.execute(text(f"DROP TABLE IF EXISTS {tbl} CASCADE"))
+            await conn.execute(text("DROP SCHEMA IF EXISTS public CASCADE"))
+            await conn.execute(text("CREATE SCHEMA public"))
         await engine.dispose()
     asyncio.run(reset())
 
@@ -73,7 +71,7 @@ class TestMigration001:
         test_engine.sync_engine.dispose()
 
     def test_migration_downgrade_removes_tenants_table(self):
-        """TRIANGULATE: downgrade -1 elimina tabla tenants."""
+        """TRIANGULATE: downgrade base elimina tabla tenants."""
         from alembic import command
         from alembic.config import Config
 
@@ -82,7 +80,7 @@ class TestMigration001:
         alembic_cfg.set_main_option("sqlalchemy.url", settings.database_url)
 
         command.upgrade(alembic_cfg, "head")
-        command.downgrade(alembic_cfg, "-1")
+        command.downgrade(alembic_cfg, "base")
 
         test_engine = create_async_engine(settings.database_url, echo=False)
         async def check():

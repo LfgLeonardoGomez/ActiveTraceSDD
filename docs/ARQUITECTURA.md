@@ -173,22 +173,36 @@ frontend/src/
 ### 5.2 Autorización (RBAC)
 
 - Roles del dominio ([RF-04](./PRD.md#auth-roles-y-tenants)): **ALUMNO, TUTOR, PROFESOR, COORDINADOR, NEXO, ADMIN, FINANZAS**.
-- **Permisos finos por feature**, no por rol monolítico. Matriz rol × permiso en `core/permissions.py`.
-- Cada endpoint declara el permiso requerido vía dependency (`require_permission("entregas:write")`). Sin él → `403`.
+- **Permisos finos por feature**, no por rol monolítico. Matriz rol × permiso vive en la **base de datos** (`rol`, `permiso`, `rol_permiso`) como catálogo administrable por tenant, no hardcodeada en código. El seed inicial proviene de `knowledge-base/03_actores_y_roles.md` §3.3.
+- Cada endpoint declara el permiso requerido vía dependency (`require_permission("modulo:accion")`). Sin él → `403`.
+- El JWT solo lleva `roles` (lista de strings). Los permisos efectivos se resuelen **server-side en cada request** consultando la matriz en BD, filtrando por tenant. Esto garantiza que los cambios en el catálogo se reflejan inmediatamente sin re-login.
 
-### 5.3 Principios de control de acceso
+### 5.3 Modificador `(propio)`
+
+Algunos permisos en la matriz llevan el modificador `(propio)`. Esto significa que el usuario posee la capacidad **solo sobre sus propios datos**, no sobre los de otros usuarios.
+
+**Patrón de implementación:**
+
+1. El guard `require_permission("modulo:accion")` devuelve un `PermissionContext` con `is_propio: bool`.
+2. El **router NO aplica el filtro de propiedad** — solo recibe la marca.
+3. El **service/repository downstream** debe aplicar el filtro correspondiente al dominio cuando `is_propio` es `true`. Ejemplos:
+   - `calificaciones:importar` (propio) → `WHERE profesor_id = current_user.id`
+   - `atrasados:ver` (propio) → `WHERE docente_asignado_id = current_user.id`
+4. Si un usuario tiene el mismo permiso como **global** (`es_propio = false`) a través de otro rol, la unión de permisos garantiza que el acceso es global (no restrictivo).
+
+### 5.4 Principios de control de acceso
 
 El control de acceso de activia-trace se rige por los siguientes principios, que son invariantes del sistema:
 
 | Principio | Descripción |
 |-----------|-------------|
 | **Identidad desde la sesión** | El usuario y el tenant se derivan **exclusivamente** del JWT verificado server-side. Ningún parámetro de query string, body ni header puede alterar o reemplazar la identidad del actor. Cualquier identificador que llegue en la request se trata como dato de entrada a validar contra los permisos del usuario actual, nunca como su identidad. |
-| **RBAC fino y explícito** | La autorización se resuelve en cada endpoint a partir de la matriz rol × permiso. No existe un flag binario de "super usuario": las capacidades se otorgan permiso a permiso. |
+| **RBAC fino y explícito** | La autorización se resuelve en cada endpoint a partir de la matriz rol × permiso en BD. No existe un flag binario de "super usuario": las capacidades se otorgan permiso a permiso. |
 | **Impersonation permisada y auditada** | La impersonación legítima (soporte / administración) es una feature explícita: requiere el permiso `impersonation:use`, genera un token de impersonation distinguible y registra en el audit log quién impersona a quién, desde cuándo y hasta cuándo ([RF-05](./PRD.md#auth-roles-y-tenants), [RNF-12](./PRD.md#seguridad)). Toda acción bajo impersonation queda atribuida al actor real, no al usuario impersonado. |
 | **Aislamiento de tenant** | Los repositories filtran por `tenant_id` por defecto. Un query sin scope de tenant es un bug que debe fallar en code review. Los datos nunca cruzan tenants. |
 | **Fail-closed** | Ante cualquier ambigüedad de permisos, el sistema deniega. |
 
-### 5.4 Otras defensas transversales
+### 5.5 Otras defensas transversales
 
 - **HTTPS/TLS 1.3** en todo el tráfico ([RNF-07](./PRD.md#seguridad)).
 - **PII cifrada en reposo** (CBU, DNI) con AES-256 ([RNF-08](./PRD.md#seguridad)).

@@ -11,7 +11,13 @@ from app.core.config import Settings
 from app.core.database import init_db
 from app.core.logging import init_logging
 from app.core.observability import init_observability
+from app.api.v1.routers.auth import router as auth_router
 from app.api.v1.routers.health import router as health_router
+from app.api.v1.routers.rbac import (
+    router_permisos,
+    router_roles,
+    router_rol_permisos,
+)
 
 settings = Settings()
 
@@ -32,3 +38,7 @@ app = FastAPI(
 )
 
 app.include_router(health_router, tags=["health"])
+app.include_router(auth_router)
+app.include_router(router_roles)
+app.include_router(router_permisos)
+app.include_router(router_rol_permisos)
