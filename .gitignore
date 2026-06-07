@@ -11,3 +11,9 @@ Thumbs.db
 .DS_Store
 .vscode/
 .idea/
+
+__pycache__/
+*.pyc
+.coverage
+.engram/
+.pytest_cache/

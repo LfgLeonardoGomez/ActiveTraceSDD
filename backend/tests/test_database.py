@@ -18,7 +18,7 @@ class TestDatabaseConnection:
     @pytest.mark.asyncio
     async def test_get_db_closes_on_exception(self):
         """TRIANGULATE: la sesión se cierra ante excepción dentro del scope de get_db."""
-        with patch("app.core.dependencies.AsyncSessionLocal") as mock_session_cls:
+        with patch("app.core.database.AsyncSessionLocal") as mock_session_cls:
             mock_session = AsyncMock()
             mock_session_cls.return_value = mock_session
             gen = get_db()

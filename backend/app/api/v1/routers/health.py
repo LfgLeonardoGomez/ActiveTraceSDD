@@ -18,8 +18,6 @@ async def health_check(db: AsyncSession = Depends(get_db)):
     try:
         await db.execute(text("SELECT 1"))
         database_status = "up"
-    except Exception as exc:
-        import logging
-        logging.getLogger(__name__).error("Health check DB failed: %s", exc, exc_info=True)
+    except Exception:
         database_status = "down"
     return {"status": "ok", "database": database_status}
