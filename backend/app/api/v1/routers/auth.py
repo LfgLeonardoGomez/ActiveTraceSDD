@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import security
 from app.core.config import Settings
-from app.core.dependencies import CurrentUser, get_current_active_user, get_db
+from app.core.dependencies import CurrentUser, get_current_active_user, get_db, require_permission
 from app.models.password_reset_token import PasswordResetToken
 from app.models.refresh_token import RefreshToken
 from app.models.user import Usuario
@@ -22,11 +22,14 @@ from app.repositories.password_reset_token_repository import PasswordResetTokenR
 from app.repositories.rate_limit_repository import RateLimitRepository
 from app.repositories.refresh_token_repository import RefreshTokenRepository
 from app.repositories.two_factor_repository import TwoFactorRepository
+from app.core.audit import AuditAction, record_audit
 from app.schemas.auth import (
     BackupCodesResponse,
     EnrollResponse,
     ForgotRequest,
+    ImpersonateRequest,
     LoginRequest,
+    MeResponse,
     PreAuthResponse,
     ResetRequest,
     TokenResponse,
@@ -482,4 +485,102 @@ async def disable_2fa(
             detail=str(exc),
         ) from exc
 
+    return None
+
+
+@router.get("/me", response_model=MeResponse)
+async def me(
+    current_user: Annotated[CurrentUser, Depends(get_current_active_user)],
+) -> MeResponse:
+    """Retorna los datos del usuario autenticado actual."""
+    return MeResponse(
+        id=current_user.id,
+        tenant_id=current_user.tenant_id,
+        email=current_user.email,
+        roles=current_user.roles,
+        is_impersonating=current_user.is_impersonating,
+        actor_id=current_user.actor_id,
+        impersonated_id=current_user.impersonated_id,
+    )
+
+
+@router.post("/impersonate", response_model=TokenResponse)
+async def start_impersonation(
+    body: ImpersonateRequest,
+    request: Request,
+    current_user: Annotated[CurrentUser, Depends(get_current_active_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    _perm=Depends(require_permission("impersonacion:usar")),
+) -> TokenResponse:
+    """Inicia una sesión de impersonación.
+
+    El actor real debe tener permiso 'impersonacion:usar'.
+    El token emitido tiene claims imp=True y act=<actor_id>.
+    """
+    result = await db.execute(
+        select(Usuario).where(
+            Usuario.id == body.target_user_id,
+            Usuario.tenant_id == current_user.tenant_id,
+            Usuario.deleted_at.is_(None),
+        )
+    )
+    target = result.scalar_one_or_none()
+
+    if target is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Target user not found",
+        )
+
+    if target.estado != "Activo":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Target user is not active",
+        )
+
+    refresh_repo = RefreshTokenRepository(db, current_user.tenant_id)
+    token_service = TokenService(refresh_repo)
+    access_token = token_service.create_impersonation_token(
+        actor_id=current_user.real_actor_id,
+        target_id=target.id,
+        tenant_id=current_user.tenant_id,
+        roles=[],
+    )
+
+    await record_audit(
+        db,
+        actor_id=current_user.real_actor_id,
+        tenant_id=current_user.tenant_id,
+        accion=AuditAction.IMPERSONACION_INICIAR,
+        impersonado_id=target.id,
+        detalle={"target_email": target.email},
+        ip=_get_client_ip(request),
+        user_agent=_get_user_agent(request),
+    )
+
+    return TokenResponse(access_token=access_token)
+
+
+@router.delete("/impersonate", status_code=status.HTTP_204_NO_CONTENT)
+async def end_impersonation(
+    request: Request,
+    current_user: Annotated[CurrentUser, Depends(get_current_active_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> None:
+    """Finaliza una sesión de impersonación activa."""
+    if not current_user.is_impersonating:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No active impersonation session",
+        )
+
+    await record_audit(
+        db,
+        actor_id=current_user.real_actor_id,
+        tenant_id=current_user.tenant_id,
+        accion=AuditAction.IMPERSONACION_FINALIZAR,
+        impersonado_id=current_user.impersonated_id,
+        ip=_get_client_ip(request),
+        user_agent=_get_user_agent(request),
+    )
     return None

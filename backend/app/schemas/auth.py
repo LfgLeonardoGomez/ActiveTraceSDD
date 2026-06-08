@@ -3,6 +3,8 @@
 Todos usan extra='forbid' como regla dura del proyecto.
 """
 
+from uuid import UUID
+
 from pydantic import BaseModel, ConfigDict, EmailStr
 
 
@@ -89,3 +91,25 @@ class BackupCodesResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     backup_codes: list[str]
+
+
+class ImpersonateRequest(BaseModel):
+    """Solicitud de inicio de sesión de impersonación."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    target_user_id: UUID
+
+
+class MeResponse(BaseModel):
+    """Respuesta del endpoint /me con datos del usuario autenticado."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: UUID
+    tenant_id: UUID
+    email: str
+    roles: list[str]
+    is_impersonating: bool
+    actor_id: UUID | None = None
+    impersonated_id: UUID | None = None

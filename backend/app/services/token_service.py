@@ -124,6 +124,26 @@ class TokenService:
         await self.refresh_token_repo.revoke_all_for_user(token.user_id)
 
 
+    def create_impersonation_token(
+        self,
+        actor_id: UUID,
+        target_id: UUID,
+        tenant_id: UUID,
+        roles: list[str],
+    ) -> str:
+        """Emite un JWT de impersonación (sin refresh token).
+
+        El token tiene duración normal de access (15 min).
+        Registrar IMPERSONACION_INICIAR en AuditLog es responsabilidad del caller.
+        """
+        return security.create_impersonation_token(
+            actor_id=actor_id,
+            target_id=target_id,
+            tenant_id=tenant_id,
+            roles=roles,
+        )
+
+
 class AuthenticationError(Exception):
     """Error de autenticación (credenciales inválidas, token expirado, etc.)."""
 

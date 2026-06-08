@@ -8,6 +8,7 @@ from app.models.refresh_token import RefreshToken
 from app.models.password_reset_token import PasswordResetToken
 from app.models.two_factor_enrollment import TwoFactorEnrollment
 from app.models.rate_limit_bucket import RateLimitBucket
+from app.models.audit_log import AuditLog
 
 __all__ = [
     "BaseModelMixin",
@@ -20,4 +21,5 @@ __all__ = [
     "PasswordResetToken",
     "TwoFactorEnrollment",
     "RateLimitBucket",
+    "AuditLog",
 ]

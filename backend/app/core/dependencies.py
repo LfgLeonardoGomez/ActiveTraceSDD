@@ -2,6 +2,7 @@
 
 C-03: get_current_user, get_current_active_user.
 C-04: require_permission real con resolucion server-side.
+C-05: ImpersonationContext — claims imp/act del JWT de impersonación.
 """
 
 from typing import Annotated, AsyncGenerator
@@ -23,7 +24,12 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 
 class CurrentUser(BaseModel):
-    """Modelo Pydantic de usuario autenticado (no ORM)."""
+    """Modelo Pydantic de usuario autenticado (no ORM).
+
+    Cuando is_impersonating=True, el campo id corresponde al usuario
+    impersonado y actor_id al usuario real que realiza la impersonación.
+    Para auditoría, siempre usar actor_id como el sujeto real.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
@@ -31,6 +37,17 @@ class CurrentUser(BaseModel):
     tenant_id: UUID
     email: str
     roles: list[str]
+    actor_id: UUID | None = None
+    is_impersonating: bool = False
+    impersonated_id: UUID | None = None
+
+    @property
+    def real_actor_id(self) -> UUID:
+        """UUID del actor real (quien realiza la acción), para auditoría."""
+        return self.actor_id if self.actor_id is not None else self.id
+
+
+ImpersonationContext = CurrentUser
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
@@ -78,6 +95,41 @@ async def get_current_user(
     except ValueError:
         raise credentials_exception
 
+    is_impersonating = bool(payload.get("imp", False))
+
+    if is_impersonating:
+        # Token de impersonación: sub=target, act=actor real
+        act_str = payload.get("act")
+        if act_str is None:
+            raise credentials_exception
+        try:
+            actor_id = UUID(act_str)
+        except ValueError:
+            raise credentials_exception
+
+        # Verificar que el usuario target (sub) existe
+        result = await db.execute(
+            select(Usuario).where(
+                Usuario.id == user_id,
+                Usuario.tenant_id == tenant_id,
+                Usuario.deleted_at.is_(None),
+            )
+        )
+        user = result.scalar_one_or_none()
+        if user is None:
+            raise credentials_exception
+
+        roles = payload.get("roles", [])
+        return CurrentUser(
+            id=user.id,
+            tenant_id=user.tenant_id,
+            email=user.email,
+            roles=roles,
+            actor_id=actor_id,
+            is_impersonating=True,
+            impersonated_id=user.id,
+        )
+
     result = await db.execute(
         select(Usuario).where(
             Usuario.id == user_id,
@@ -95,6 +147,9 @@ async def get_current_user(
         tenant_id=user.tenant_id,
         email=user.email,
         roles=roles,
+        actor_id=user.id,
+        is_impersonating=False,
+        impersonated_id=None,
     )
 
 

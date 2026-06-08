@@ -87,6 +87,37 @@ def verify_access_token(token: str) -> dict | None:
         return None
 
 
+def create_impersonation_token(
+    actor_id: UUID,
+    target_id: UUID,
+    tenant_id: UUID,
+    roles: list[str],
+    expires_delta: timedelta | None = None,
+) -> str:
+    """Crea un JWT de impersonación.
+
+    Claims adicionales vs access normal:
+        imp: true — marca el token como de impersonación
+        act: UUID del actor real (quien impersona)
+        sub: UUID del usuario impersonado (target)
+    """
+    if expires_delta is None:
+        expires_delta = timedelta(minutes=settings.access_token_expire_minutes)
+
+    now = datetime.now(timezone.utc)
+    payload = {
+        "sub": str(target_id),
+        "act": str(actor_id),
+        "imp": True,
+        "tenant_id": str(tenant_id),
+        "roles": roles,
+        "type": "access",
+        "iat": now,
+        "exp": now + expires_delta,
+    }
+    return jwt.encode(payload, settings.secret_key, algorithm=ALGORITHM)
+
+
 def create_refresh_token() -> str:
     """Genera un token opaco aleatorio de 32 bytes (URL-safe)."""
     return secrets.token_urlsafe(32)
