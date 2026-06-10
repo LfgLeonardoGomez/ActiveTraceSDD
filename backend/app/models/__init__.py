@@ -11,6 +11,9 @@ from app.models.rate_limit_bucket import RateLimitBucket
 from app.models.audit_log import AuditLog
 from app.models.estructura import Carrera, Cohorte, Materia
 from app.models.asignacion import Asignacion
+from app.models.slot_encuentro import SlotEncuentro
+from app.models.instancia_encuentro import InstanciaEncuentro
+from app.models.guardia import Guardia
 
 __all__ = [
     "BaseModelMixin",
@@ -28,4 +31,7 @@ __all__ = [
     "Cohorte",
     "Materia",
     "Asignacion",
+    "SlotEncuentro",
+    "InstanciaEncuentro",
+    "Guardia",
 ]
