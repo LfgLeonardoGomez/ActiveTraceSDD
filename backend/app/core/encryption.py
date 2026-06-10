@@ -6,9 +6,13 @@ authentication tag (16 bytes) + ciphertext.
 
 Descifrado valida integridad (tamper detection) y falla con EncryptionError
 si el ciphertext fue modificado.
+
+hash_email_for_lookup: HMAC-SHA256 determinístico para lookup eficiente de email.
 """
 
 import base64
+import hmac
+import hashlib
 import os
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -87,3 +91,21 @@ def decrypt_pii(cipher_text: str) -> str:
         raise EncryptionError("Tamper detected or corrupted ciphertext") from exc
 
     return plain_bytes.decode("utf-8")
+
+
+def hash_email_for_lookup(email: str) -> str:
+    """Calcula HMAC-SHA256 del email normalizado para lookup determinístico.
+
+    Usa ENCRYPTION_KEY como secreto HMAC para evitar rainbow tables.
+    Normaliza a lowercase para búsqueda case-insensitive.
+
+    Args:
+        email: Email en texto plano (cualquier capitalización).
+
+    Returns:
+        Hexdigest del HMAC-SHA256 (64 caracteres hex).
+    """
+    key = _get_key()
+    normalized = email.strip().lower()
+    mac = hmac.new(key, normalized.encode("utf-8"), hashlib.sha256)
+    return mac.hexdigest()

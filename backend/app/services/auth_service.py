@@ -1,15 +1,17 @@
 """Servicio de autenticacion: login, logout, resolucion de identidad.
 
 No accede directamente a DB; usa repositorios.
+
+C-07: lookup de email via HMAC-SHA256 (email_hash) en lugar de texto plano.
 """
 
 from uuid import UUID
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import security
 from app.models.user import Usuario
+from app.repositories.usuarios import UsuarioRepository
 from app.services.token_service import TokenService
 
 
@@ -32,17 +34,14 @@ class AuthService:
     ) -> Usuario | None:
         """Valida credenciales y retorna el usuario si son correctas.
 
-        Busca por email dentro del tenant; comportamiento identico en tiempo
-        para email existente e inexistente (timing-safe).
+        Busca por email_hash (HMAC-SHA256) dentro del tenant.
+        Comportamiento identico en tiempo para email existente e inexistente (timing-safe).
+
+        C-07 D-02: email lookup vía hash determinístico — NO texto plano.
         """
-        result = await self.db_session.execute(
-            select(Usuario).where(
-                Usuario.email == email,
-                Usuario.tenant_id == tenant_id,
-                Usuario.deleted_at.is_(None),
-            )
-        )
-        user = result.scalar_one_or_none()
+        repo = UsuarioRepository(self.db_session, tenant_id)
+        user = await repo.get_by_email_hash(email)
+
         if user is None or user.password_hash is None:
             # Ejecutar verify_password con hash dummy para timing-safe
             security.verify_password(password, security.DUMMY_HASH)

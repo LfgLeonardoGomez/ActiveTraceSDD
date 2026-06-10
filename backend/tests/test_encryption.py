@@ -86,3 +86,37 @@ class TestEncryption:
         settings = Settings()
         key_bytes = settings.encryption_key.encode("utf-8")
         assert len(key_bytes) == 32
+
+
+class TestHashEmailForLookup:
+    """Task 1.2 RED → GREEN → TRIANGULATE para hash_email_for_lookup."""
+
+    def test_hash_email_for_lookup_determinista(self):
+        """RED 1.2: el mismo email produce el mismo hash (determinístico)."""
+        from app.core.encryption import hash_email_for_lookup
+        h1 = hash_email_for_lookup("usuario@example.com")
+        h2 = hash_email_for_lookup("usuario@example.com")
+        assert h1 == h2
+        assert isinstance(h1, str)
+        assert len(h1) == 64  # SHA-256 hexdigest = 64 chars
+
+    def test_hash_email_emails_distintos_producen_hashes_distintos(self):
+        """TRIANGULATE 1.2: emails distintos → hashes distintos."""
+        from app.core.encryption import hash_email_for_lookup
+        h1 = hash_email_for_lookup("uno@example.com")
+        h2 = hash_email_for_lookup("dos@example.com")
+        assert h1 != h2
+
+    def test_hash_email_case_insensitive(self):
+        """TRIANGULATE 1.2: email en mayúsculas produce el mismo hash que en minúsculas."""
+        from app.core.encryption import hash_email_for_lookup
+        h_lower = hash_email_for_lookup("usuario@example.com")
+        h_upper = hash_email_for_lookup("USUARIO@EXAMPLE.COM")
+        assert h_lower == h_upper
+
+    def test_hash_email_distinto_de_hash_de_otro_email(self):
+        """TRIANGULATE 1.2: hash de emails similares difieren."""
+        from app.core.encryption import hash_email_for_lookup
+        h1 = hash_email_for_lookup("a@a.com")
+        h2 = hash_email_for_lookup("a@b.com")
+        assert h1 != h2

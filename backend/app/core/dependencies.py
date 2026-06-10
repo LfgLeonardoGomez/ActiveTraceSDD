@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import security
 from app.core.database import Base, init_db
+from app.core.encryption import decrypt_pii
 from app.models.user import Usuario
 from app.schemas.rbac_schema import PermissionContext
 from app.services.permission_service import PermissionService
@@ -120,10 +121,15 @@ async def get_current_user(
             raise credentials_exception
 
         roles = payload.get("roles", [])
+        # C-07 D-02: user.email is AES-256-GCM ciphertext — decrypt for CurrentUser
+        try:
+            plain_email = decrypt_pii(user.email)
+        except Exception:
+            plain_email = user.email  # fallback si no está cifrado (usuarios legacy)
         return CurrentUser(
             id=user.id,
             tenant_id=user.tenant_id,
-            email=user.email,
+            email=plain_email,
             roles=roles,
             actor_id=actor_id,
             is_impersonating=True,
@@ -142,10 +148,15 @@ async def get_current_user(
         raise credentials_exception
 
     roles = payload.get("roles", [])
+    # C-07 D-02: user.email is AES-256-GCM ciphertext — decrypt for CurrentUser
+    try:
+        plain_email = decrypt_pii(user.email)
+    except Exception:
+        plain_email = user.email  # fallback si no está cifrado (usuarios legacy)
     return CurrentUser(
         id=user.id,
         tenant_id=user.tenant_id,
-        email=user.email,
+        email=plain_email,
         roles=roles,
         actor_id=user.id,
         is_impersonating=False,

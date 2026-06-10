@@ -18,6 +18,8 @@ from app.api.v1.routers.rbac import (
     router_roles,
     router_rol_permisos,
 )
+from app.api.v1.routers.usuarios import router as usuarios_router
+from app.api.v1.routers.asignaciones import router as asignaciones_router
 
 settings = Settings()
 
@@ -42,3 +44,5 @@ app.include_router(auth_router)
 app.include_router(router_roles)
 app.include_router(router_permisos)
 app.include_router(router_rol_permisos)
+app.include_router(usuarios_router)
+app.include_router(asignaciones_router)

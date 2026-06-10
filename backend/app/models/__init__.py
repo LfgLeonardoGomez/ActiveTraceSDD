@@ -9,6 +9,8 @@ from app.models.password_reset_token import PasswordResetToken
 from app.models.two_factor_enrollment import TwoFactorEnrollment
 from app.models.rate_limit_bucket import RateLimitBucket
 from app.models.audit_log import AuditLog
+from app.models.estructura import Carrera, Cohorte, Materia
+from app.models.asignacion import Asignacion
 
 __all__ = [
     "BaseModelMixin",
@@ -22,4 +24,8 @@ __all__ = [
     "TwoFactorEnrollment",
     "RateLimitBucket",
     "AuditLog",
+    "Carrera",
+    "Cohorte",
+    "Materia",
+    "Asignacion",
 ]
