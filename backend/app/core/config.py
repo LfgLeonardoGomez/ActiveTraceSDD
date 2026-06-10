@@ -30,6 +30,8 @@ class Settings(BaseSettings):
     refresh_cookie_secure: bool = Field(
         default=True, description="Flag Secure en cookie de refresh token"
     )
+    moodle_url: str | None = Field(default=None, description="URL base de Moodle WS")
+    moodle_token: str | None = Field(default=None, description="Token de Moodle WS")
 
     @field_validator("secret_key")
     @classmethod

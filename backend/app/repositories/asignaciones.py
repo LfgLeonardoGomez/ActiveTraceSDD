@@ -132,6 +132,29 @@ class AsignacionRepository(BaseRepository[Asignacion]):
         await self.db_session.refresh(instance)
         return instance
 
+    async def exists_active_for_user_and_materia(
+        self, *, usuario_id: UUID, materia_id: UUID
+    ) -> bool:
+        """Verifica si un usuario tiene asignación vigente para una materia.
+
+        Usado para validar el scope propio (padron:cargar, futuros permisos).
+        """
+        today = date.today()
+        query = select(func.count()).select_from(
+            select(Asignacion)
+            .where(
+                Asignacion.tenant_id == self.tenant_id,
+                Asignacion.usuario_id == usuario_id,
+                Asignacion.materia_id == materia_id,
+                Asignacion.deleted_at.is_(None),
+                Asignacion.desde <= today,
+                (Asignacion.hasta.is_(None)) | (Asignacion.hasta >= today),
+            )
+            .subquery()
+        )
+        result = await self.db_session.execute(query)
+        return result.scalar_one() > 0
+
     async def soft_delete(self, obj_id: UUID) -> bool:
         """Soft delete: setea deleted_at.
 
