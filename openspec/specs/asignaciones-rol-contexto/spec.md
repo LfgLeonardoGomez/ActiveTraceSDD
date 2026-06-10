@@ -68,7 +68,7 @@ El campo `responsable_id` de una asignación SHALL referenciar a un Usuario del 
 - **THEN** el sistema retorna 404 (el usuario no existe en el scope del tenant)
 
 ### Requirement: Listar asignaciones con filtros
-El sistema SHALL listar asignaciones del tenant con filtros opcionales: `usuario_id`, `rol`, `materia_id`, `carrera_id`, `cohorte_id`, `estado_vigencia` (calculado, no filtrable directamente en DB — se filtra post-query o con expresión de fecha en WHERE). Paginación con `limit`/`offset`.
+El sistema SHALL listar asignaciones del tenant con filtros opcionales: `usuario_id`, `rol`, `materia_id`, `carrera_id`, `cohorte_id`, `estado_vigencia` (calculado, no filtrable directamente en DB — se filtra post-query o con expresión de fecha en WHERE), y `equipo` (parámetro booleano que, cuando es true, agrupa los resultados por contexto académico omitiendo duplicados de usuario). Paginación con `limit`/`offset`.
 
 #### Scenario: Listado filtrado por usuario
 - **WHEN** un actor con `equipos:asignar` solicita `GET /api/v1/asignaciones?usuario_id=<uuid>`
@@ -77,6 +77,14 @@ El sistema SHALL listar asignaciones del tenant con filtros opcionales: `usuario
 #### Scenario: Aislamiento multi-tenant en listado de asignaciones
 - **WHEN** un actor del tenant A solicita `GET /api/v1/asignaciones`
 - **THEN** solo se devuelven asignaciones del tenant A
+
+#### Scenario: Listado filtrado por equipo (agrupado)
+- **WHEN** un actor con `equipos:asignar` solicita `GET /api/v1/asignaciones?materia_id=X&carrera_id=Y&cohorte_id=Z&equipo=true`
+- **THEN** el sistema retorna las asignaciones agrupadas por contexto (no duplicados por usuario), mostrando el equipo completo
+
+#### Scenario: Listado sin filtro equipo (comportamiento existente)
+- **WHEN** un actor con `equipos:asignar` solicita `GET /api/v1/asignaciones` sin `equipo=true`
+- **THEN** el sistema retorna el listado paginado normal sin agrupación
 
 ### Requirement: Actualizar vigencia de asignación
 El sistema SHALL permitir actualizar las fechas `desde` y/o `hasta` de una asignación existente. Solo los campos presentes en el body se actualizan.
@@ -91,3 +99,23 @@ El sistema SHALL implementar soft delete de asignaciones (setea `deleted_at`). U
 #### Scenario: Soft delete de asignación activa
 - **WHEN** un actor con `equipos:asignar` envía `DELETE /api/v1/asignaciones/{id}`
 - **THEN** el sistema setea `deleted_at`, retorna 204. La asignación no aparece en listados normales.
+
+## MODIFIED Requirements
+
+### Requirement: Endpoints de asignaciones y equipos coexisten
+El sistema SHALL mantener los endpoints existentes de `/api/v1/asignaciones` para operaciones CRUD individuales de asignaciones (crear, listar, obtener, actualizar, soft delete). El sistema SHALL agregar nuevos endpoints bajo `/api/v1/equipos/` para operaciones orientadas a equipo (mis-equipos, asignación masiva, clonación, batch vigencia, export). Ambos routers operan sobre la misma tabla `asignaciones` pero con semántica distinta: `/api/v1/asignaciones` es para CRUD de filas individuales; `/api/v1/equipos` es para operaciones de equipo (agregación de múltiples asignaciones en un contexto académico).
+
+#### Scenario: CRUD de asignación sigue funcionando en asignaciones
+- GIVEN una asignación existente
+- WHEN un COORDINADOR envía `GET /api/v1/asignaciones/{id}`
+- THEN el sistema retorna la asignación individual correctamente
+
+#### Scenario: Operación de equipo se ejecuta en nuevo namespace
+- GIVEN el mismo equipo de asignaciones
+- WHEN un COORDINADOR envía `GET /api/v1/equipos/equipo?materia_id=X&carrera_id=Y&cohorte_id=Z`
+- THEN el sistema retorna el equipo completo con todas las asignaciones del contexto
+
+#### Scenario: Router asignaciones sin equipo filter (comportamiento existente)
+- GIVEN el listado de asignaciones
+- WHEN un COORDINADOR envía `GET /api/v1/asignaciones` sin parámetros de equipo
+- THEN el sistema retorna el listado paginado normal sin agrupación

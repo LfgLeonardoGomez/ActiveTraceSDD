@@ -89,6 +89,7 @@ async def listar_asignaciones(
     carrera_id: Annotated[UUID | None, Query()] = None,
     cohorte_id: Annotated[UUID | None, Query()] = None,
     incluir_vencidas: Annotated[bool, Query()] = True,
+    equipo: Annotated[bool, Query()] = False,
 ) -> PaginatedAsignacionesResponse:
     """Lista asignaciones del tenant con filtros opcionales y paginación."""
     service = AsignacionService(db, current_user.tenant_id)
