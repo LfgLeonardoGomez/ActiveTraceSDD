@@ -227,7 +227,7 @@ C-01 → C-02 → C-03 → C-04 → C-06 → C-07 → C-09 → C-10 → C-11 →
 ## FASE 2 — Entidades Raíz del Dominio Académico
 
 ### [C-06] `estructura-academica`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado (2026-06-09)
 - **Scope**:
   - Modelos: `Carrera`, `Cohorte`, `Materia` (catálogo único por tenant — ADR-006).
   - ABM `/api/admin/carreras`, `/api/admin/cohortes`, `/api/admin/materias` con guard `estructura:gestionar` (ADMIN).
@@ -299,7 +299,7 @@ C-01 → C-02 → C-03 → C-04 → C-06 → C-07 → C-09 → C-10 → C-11 →
   - `knowledge-base/04_modelo_de_datos.md` §E5 Asignación
 
 ### [C-09] `padron-ingesta-moodle`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado (2026-06-10)
 - **Scope**:
   - Modelos `VersionPadron` + `EntradaPadron` (versionado: una versión activa por materia×cohorte; activar nueva desactiva la anterior).
   - Import de padrón: archivo `.xlsx`/`.csv` (fallback manual) con vista previa (F1.3, F1.4).
@@ -363,7 +363,7 @@ C-01 → C-02 → C-03 → C-04 → C-06 → C-07 → C-09 → C-10 → C-11 →
   - `knowledge-base/08_arquitectura_propuesta.md` §5.2 (worker de cola)
 
 ### [C-13] `encuentros-y-guardias`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado (2026-06-10)
 - **Scope**:
   - Modelos `SlotEncuentro`, `InstanciaEncuentro`, `Guardia`.
   - Crear encuentro recurrente (F6.1, RN-13): genera todas las instancias del slot. Encuentro único (F6.2). Editar instancia (F6.3: estado, meet_url, video_url, comentario).
