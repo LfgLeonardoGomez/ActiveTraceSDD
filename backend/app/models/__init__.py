@@ -14,6 +14,8 @@ from app.models.asignacion import Asignacion
 from app.models.slot_encuentro import SlotEncuentro
 from app.models.instancia_encuentro import InstanciaEncuentro
 from app.models.guardia import Guardia
+from app.models.calificacion import Calificacion
+from app.models.umbral_materia import UmbralMateria
 
 __all__ = [
     "BaseModelMixin",
@@ -34,4 +36,6 @@ __all__ = [
     "SlotEncuentro",
     "InstanciaEncuentro",
     "Guardia",
+    "Calificacion",
+    "UmbralMateria",
 ]

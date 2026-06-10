@@ -7,6 +7,7 @@ Endpoints:
 - GET  /api/v1/guardias/exportar      → exportar guardias (encuentros:gestionar)
 """
 
+from datetime import date
 from typing import Annotated
 from uuid import UUID
 

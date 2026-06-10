@@ -21,12 +21,11 @@ from app.api.v1.routers.rbac import (
 from app.api.v1.routers.usuarios import router as usuarios_router
 from app.api.v1.routers.asignaciones import router as asignaciones_router
 from app.api.v1.routers.equipos import router as equipos_router
-<<<<<<< Updated upstream
 from app.api.v1.routers.padron import router as padron_router
-=======
 from app.api.v1.routers.encuentros import router as encuentros_router
 from app.api.v1.routers.guardias import router as guardias_router
->>>>>>> Stashed changes
+from app.api.v1.routers.calificaciones import router as calificaciones_router
+from app.api.v1.routers.umbral import router as umbral_router
 
 settings = Settings()
 
@@ -53,9 +52,9 @@ app.include_router(router_permisos)
 app.include_router(router_rol_permisos)
 app.include_router(usuarios_router)
 app.include_router(asignaciones_router)
-<<<<<<< Updated upstream
-=======
 app.include_router(equipos_router)
+app.include_router(padron_router)
 app.include_router(encuentros_router)
 app.include_router(guardias_router)
->>>>>>> Stashed changes
+app.include_router(calificaciones_router)
+app.include_router(umbral_router)

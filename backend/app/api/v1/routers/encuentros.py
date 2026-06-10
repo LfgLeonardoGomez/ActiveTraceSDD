@@ -12,6 +12,7 @@ Endpoints:
 - GET  /api/v1/encuentros/bloque-html    → generar bloque HTML/Markdown
 """
 
+from datetime import date
 from typing import Annotated
 from uuid import UUID
 
