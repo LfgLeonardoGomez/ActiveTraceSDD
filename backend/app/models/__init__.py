@@ -25,6 +25,18 @@ from app.models.evaluacion import (
     TipoEvaluacion,
     EstadoReserva,
 )
+from app.models.aviso import (
+    Aviso,
+    AcknowledgmentAviso,
+    AlcanceAviso,
+    SeveridadAviso,
+)
+from app.models.tarea import (
+    Tarea,
+    ComentarioTarea,
+    EstadoTarea,
+)
+from app.models.programa_materia import ProgramaMateria, FechaAcademica
 
 __all__ = [
     "BaseModelMixin",
@@ -55,4 +67,13 @@ __all__ = [
     "ResultadoEvaluacion",
     "TipoEvaluacion",
     "EstadoReserva",
+    "Aviso",
+    "AcknowledgmentAviso",
+    "AlcanceAviso",
+    "SeveridadAviso",
+    "Tarea",
+    "ComentarioTarea",
+    "EstadoTarea",
+    "ProgramaMateria",
+    "FechaAcademica",
 ]

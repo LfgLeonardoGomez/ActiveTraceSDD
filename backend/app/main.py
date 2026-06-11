@@ -29,6 +29,10 @@ from app.api.v1.routers.umbral import router as umbral_router
 from app.api.v1.routers.analisis import router as analisis_router
 from app.api.v1.routers.comunicaciones import router as comunicaciones_router
 from app.api.v1.routers.coloquios import router as coloquios_router
+from app.api.v1.routers.avisos import router as avisos_router
+from app.api.v1.routers.tareas import router as tareas_router
+from app.api.v1.routers.programas import router as programas_router
+from app.api.v1.routers.fechas_academicas import router as fechas_academicas_router
 
 settings = Settings()
 
@@ -64,3 +68,7 @@ app.include_router(umbral_router)
 app.include_router(analisis_router)
 app.include_router(comunicaciones_router)
 app.include_router(coloquios_router)
+app.include_router(avisos_router)
+app.include_router(tareas_router)
+app.include_router(programas_router)
+app.include_router(fechas_academicas_router)
