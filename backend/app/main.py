@@ -28,6 +28,7 @@ from app.api.v1.routers.calificaciones import router as calificaciones_router
 from app.api.v1.routers.umbral import router as umbral_router
 from app.api.v1.routers.analisis import router as analisis_router
 from app.api.v1.routers.comunicaciones import router as comunicaciones_router
+from app.api.v1.routers.coloquios import router as coloquios_router
 
 settings = Settings()
 
@@ -62,3 +63,4 @@ app.include_router(calificaciones_router)
 app.include_router(umbral_router)
 app.include_router(analisis_router)
 app.include_router(comunicaciones_router)
+app.include_router(coloquios_router)

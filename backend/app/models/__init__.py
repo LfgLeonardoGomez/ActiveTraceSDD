@@ -17,6 +17,14 @@ from app.models.guardia import Guardia
 from app.models.calificacion import Calificacion
 from app.models.umbral_materia import UmbralMateria
 from app.models.comunicacion import Comunicacion, EstadoComunicacion
+from app.models.evaluacion import (
+    Evaluacion,
+    EvaluacionCandidato,
+    ReservaEvaluacion,
+    ResultadoEvaluacion,
+    TipoEvaluacion,
+    EstadoReserva,
+)
 
 __all__ = [
     "BaseModelMixin",
@@ -41,4 +49,10 @@ __all__ = [
     "UmbralMateria",
     "Comunicacion",
     "EstadoComunicacion",
+    "Evaluacion",
+    "EvaluacionCandidato",
+    "ReservaEvaluacion",
+    "ResultadoEvaluacion",
+    "TipoEvaluacion",
+    "EstadoReserva",
 ]
