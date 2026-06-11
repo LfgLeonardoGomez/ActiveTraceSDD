@@ -32,6 +32,26 @@ class Settings(BaseSettings):
     )
     moodle_url: str | None = Field(default=None, description="URL base de Moodle WS")
     moodle_token: str | None = Field(default=None, description="Token de Moodle WS")
+    n8n_webhook_url: str | None = Field(
+        default=None,
+        description="URL del webhook de N8N para despacho de comunicaciones (opcional)",
+    )
+    n8n_timeout_seconds: int = Field(
+        default=10,
+        description="Timeout en segundos para el webhook de N8N",
+    )
+    comunicacion_dispatch_interval_seconds: int = Field(
+        default=30,
+        description="Intervalo entre ciclos del worker de despacho de comunicaciones",
+    )
+    comunicacion_batch_size: int = Field(
+        default=50,
+        description="Cantidad máxima de mensajes a procesar por ciclo del worker",
+    )
+    comunicacion_stale_threshold_minutes: int = Field(
+        default=10,
+        description="Minutos en estado Enviando antes de resetear a Pendiente al arrancar el worker",
+    )
 
     @field_validator("secret_key")
     @classmethod

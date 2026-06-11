@@ -16,6 +16,7 @@ from app.models.instancia_encuentro import InstanciaEncuentro
 from app.models.guardia import Guardia
 from app.models.calificacion import Calificacion
 from app.models.umbral_materia import UmbralMateria
+from app.models.comunicacion import Comunicacion, EstadoComunicacion
 
 __all__ = [
     "BaseModelMixin",
@@ -38,4 +39,6 @@ __all__ = [
     "Guardia",
     "Calificacion",
     "UmbralMateria",
+    "Comunicacion",
+    "EstadoComunicacion",
 ]
