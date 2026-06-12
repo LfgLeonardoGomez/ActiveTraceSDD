@@ -18,6 +18,38 @@ import { TpsSinCorregirTab } from '@/features/comisiones/components/TpsSinCorreg
 import { MonitorTab } from '@/features/comisiones/components/MonitorTab';
 import { ComunicacionesTab } from '@/features/comisiones/components/ComunicacionesTab';
 
+import { CoordinacionLayout } from '@/features/coordinacion/components/CoordinacionLayout';
+import CoordinacionHome from '@/features/coordinacion/pages/CoordinacionHome';
+import {
+  EquiposLayout,
+  EquiposIndex,
+  EquiposUsuarios,
+  EquiposAsignaciones,
+  EquiposAsignacionMasiva,
+  EquiposClonar,
+  EquiposVigencia,
+  EquiposExportar,
+} from '@/features/coordinacion/pages/EquiposPages';
+import { EstructuraLayout } from '@/features/coordinacion/pages/EstructuraPages';
+import { MonitorLayout, MonitorGeneral, MonitorAuditoria } from '@/features/coordinacion/pages/MonitorPages';
+import { ColoquiosLayout } from '@/features/coordinacion/pages/ColoquiosPages';
+import { TareasLayout, TareasIndex, TareasAsignar, TareasAdmin } from '@/features/coordinacion/pages/TareasPages';
+import {
+  EncuentrosLayout,
+  EncuentrosIndex,
+  EncuentrosNuevo,
+  EncuentrosRecurrente,
+  EncuentrosContenidoAula,
+  EncuentrosGuardias,
+  EncuentroEditPage,
+} from '@/features/coordinacion/pages/EncuentrosPages';
+import {
+  AvisosLayout,
+  AvisosList,
+  CrearAviso,
+  EditarAviso,
+} from '@/features/coordinacion/pages/AvisosPages';
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -43,6 +75,43 @@ export default function App() {
               <Route path="tps-sin-corregir" element={<TpsSinCorregirTab />} />
               <Route path="monitor" element={<MonitorTab />} />
               <Route path="comunicaciones" element={<ComunicacionesTab />} />
+            </Route>
+
+            <Route path="/coordinacion" element={<CoordinacionLayout />}>
+              <Route index element={<CoordinacionHome />} />
+              <Route path="equipos" element={<EquiposLayout />}>
+                <Route index element={<EquiposIndex />} />
+                <Route path="usuarios" element={<EquiposUsuarios />} />
+                <Route path="asignaciones" element={<EquiposAsignaciones />} />
+                <Route path="asignaciones/masiva" element={<EquiposAsignacionMasiva />} />
+                <Route path="clonar" element={<EquiposClonar />} />
+                <Route path="vigencia" element={<EquiposVigencia />} />
+                <Route path="exportar" element={<EquiposExportar />} />
+              </Route>
+              <Route path="estructura/*" element={<EstructuraLayout />} />
+              <Route path="encuentros" element={<EncuentrosLayout />}>
+                <Route index element={<EncuentrosIndex />} />
+                <Route path="nuevo" element={<EncuentrosNuevo />} />
+                <Route path="recurrente" element={<EncuentrosRecurrente />} />
+                <Route path="contenido-aula" element={<EncuentrosContenidoAula />} />
+                <Route path="guardias" element={<EncuentrosGuardias />} />
+                <Route path=":encuentroId/editar" element={<EncuentroEditPage />} />
+              </Route>
+              <Route path="coloquios/*" element={<ColoquiosLayout />} />
+              <Route path="tareas" element={<TareasLayout />}>
+                <Route index element={<TareasIndex />} />
+                <Route path="asignar" element={<TareasAsignar />} />
+                <Route path="admin" element={<TareasAdmin />} />
+              </Route>
+              <Route path="avisos" element={<AvisosLayout />}>
+                <Route index element={<AvisosList />} />
+                <Route path="nuevo" element={<CrearAviso />} />
+                <Route path=":avisoId/editar" element={<EditarAviso />} />
+              </Route>
+              <Route path="monitor" element={<MonitorLayout />}>
+                <Route index element={<MonitorGeneral />} />
+                <Route path="auditoria" element={<MonitorAuditoria />} />
+              </Route>
             </Route>
           </Route>
         </Route>
