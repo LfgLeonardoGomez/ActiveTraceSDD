@@ -23,8 +23,16 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: ['./src/features/coordinacion/test/setup.ts'],
+    setupFiles: [
+      './src/features/coordinacion/test/setup.ts',
+      './src/features/finanzas/test/setup.ts',
+      './src/features/admin/test/setup.ts',
+    ],
     css: false,
-    include: ['src/features/coordinacion/test/**/*.test.{ts,tsx}'],
+    include: [
+      'src/features/coordinacion/test/**/*.test.{ts,tsx}',
+      'src/features/finanzas/test/**/*.test.{ts,tsx}',
+      'src/features/admin/test/**/*.test.{ts,tsx}',
+    ],
   },
 })

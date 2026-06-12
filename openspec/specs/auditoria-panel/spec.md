@@ -139,3 +139,63 @@ El repositorio `AuditoriaPanelRepository` SHALL exponer **únicamente** métodos
 - **GIVEN** Tenant A con 10 registros y Tenant B con 8 registros
 - **WHEN** se construye el repository con `tenant_id = A` y se ejecutan los métodos de conteo
 - **THEN** ningún conteo incluye registros de Tenant B
+
+---
+
+### Requirement: UI — Gráfico de acciones por día (Frontend)
+
+La UI SHALL displayar acciones por día como un gráfico de líneas (lazy-loaded).
+
+#### Scenario: Líneas diarias
+- **GIVEN** un ADMIN o COORDINADOR
+- **WHEN** el panel carga
+- **THEN** un gráfico de líneas muestra los conteos diarios
+
+---
+
+### Requirement: UI — Gráfico de comunicaciones por docente (Frontend)
+
+La UI SHALL displayar estado de comunicaciones por docente como un stacked bar (lazy-loaded).
+
+#### Scenario: Barras apiladas
+- **GIVEN** un usuario
+- **WHEN** el panel carga
+- **THEN** un stacked bar muestra estados por docente
+
+---
+
+### Requirement: UI — Gráfico de interacciones por docente×materia (Frontend)
+
+La UI SHALL displayar interacciones por docente y materia como un bar chart (lazy-loaded).
+
+#### Scenario: Barras de interacciones
+- **GIVEN** un usuario
+- **WHEN** el panel carga
+- **THEN** un gráfico muestra métricas por docente y materia
+
+---
+
+### Requirement: UI — Log de auditoría con filtros (Frontend)
+
+La UI SHALL mostrar un log paginado con filtros por fecha, materia, usuario y estado.
+
+#### Scenario: Filtro por fecha
+- **GIVEN** un ADMIN
+- **WHEN** se aplica un filtro de fecha
+- **THEN** solo las entradas que coinciden se muestran
+
+#### Scenario: COORDINADOR con scope propio
+- **GIVEN** un COORDINADOR
+- **WHEN** visualiza el log
+- **THEN** solo las entradas de su scope propio se muestran
+
+---
+
+### Requirement: UI — Badge de scope (Frontend)
+
+La UI SHALL mostrar "Vista personal" cuando COORDINADOR ve scope propio.
+
+#### Scenario: Badge visible para COORDINADOR
+- **GIVEN** un COORDINADOR
+- **WHEN** el panel carga
+- **THEN** un badge indica alcance restringido

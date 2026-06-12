@@ -77,3 +77,47 @@ La unicidad `(tenant_id, email)` SHALL ser enforced en la capa de service (409 s
 #### Scenario: Índice de DB rechaza violación concurrente
 - **WHEN** dos requests concurrentes intentan crear usuarios con el mismo email en el mismo tenant simultáneamente
 - **THEN** solo uno tiene éxito; el otro recibe un error (el índice de DB actúa como safety net)
+
+---
+
+### Requirement: UI — Listado de usuarios (Frontend Admin)
+
+La UI SHALL listar usuarios con nombre, email, roles y estado.
+
+#### Scenario: Tabla de usuarios
+- **GIVEN** un usuario ADMIN
+- **WHEN** la página carga
+- **THEN** una tabla muestra todos los usuarios
+
+---
+
+### Requirement: UI — Detalle de usuario (Frontend Admin)
+
+La UI SHALL mostrar un panel con DNI, CUIL, CBU, banco y regional.
+
+#### Scenario: Panel de detalle
+- **GIVEN** una fila de usuario
+- **WHEN** se hace clic
+- **THEN** un panel muestra los campos
+
+---
+
+### Requirement: UI — Edición de usuario (Frontend Admin)
+
+La UI SHALL permitir editar nombre, email, regional, banco y estado.
+
+#### Scenario: Editar y guardar
+- **GIVEN** un usuario
+- **WHEN** se edita y guarda
+- **THEN** la lista se actualiza
+
+---
+
+### Requirement: UI — Roles como badges (Frontend Admin)
+
+La UI SHALL mostrar roles desde Asignaciones como badges.
+
+#### Scenario: Múltiples roles visibles
+- **GIVEN** un usuario con múltiples roles
+- **WHEN** se visualiza
+- **THEN** badges muestran todos los roles

@@ -1,5 +1,6 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from '@/shared/components/guards/ProtectedRoute';
+import PermissionGuard from '@/shared/components/guards/PermissionGuard';
 import Layout from '@/shared/components/Layout';
 import LoginPage from '@/features/auth/pages/LoginPage';
 import TwoFactorPage from '@/features/auth/pages/TwoFactorPage';
@@ -49,6 +50,16 @@ import {
   CrearAviso,
   EditarAviso,
 } from '@/features/coordinacion/pages/AvisosPages';
+
+import LiquidacionesPage from '@/features/finanzas/pages/LiquidacionesPage';
+import HistorialPage from '@/features/finanzas/pages/HistorialPage';
+import SalarioGridPage from '@/features/finanzas/pages/SalarioGridPage';
+import FacturasPage from '@/features/finanzas/pages/FacturasPage';
+
+import EstructuraPage from '@/features/admin/pages/EstructuraPage';
+import UsuariosPage from '@/features/admin/pages/UsuariosPage';
+import AuditoriaPanelPage from '@/features/admin/pages/AuditoriaPanelPage';
+import AuditoriaLogPage from '@/features/admin/pages/AuditoriaLogPage';
 
 export default function App() {
   return (
@@ -112,6 +123,24 @@ export default function App() {
                 <Route index element={<MonitorGeneral />} />
                 <Route path="auditoria" element={<MonitorAuditoria />} />
               </Route>
+            </Route>
+
+            {/* Finanzas */}
+            <Route path="/finanzas" element={<PermissionGuard requiredPermissions="liquidaciones:ver" />}>
+              <Route index element={<Navigate to="liquidaciones" replace />} />
+              <Route path="liquidaciones" element={<LiquidacionesPage />} />
+              <Route path="historial" element={<HistorialPage />} />
+              <Route path="salarios" element={<PermissionGuard requiredPermissions="liquidaciones:configurar-salarios"><SalarioGridPage /></PermissionGuard>} />
+              <Route path="facturas" element={<FacturasPage />} />
+            </Route>
+
+            {/* Admin */}
+            <Route path="/admin" element={<PermissionGuard requiredPermissions={['estructura:gestionar', 'usuarios:gestionar', 'auditoria:ver']} requireAll={false} />}>
+              <Route index element={<Navigate to="estructura" replace />} />
+              <Route path="estructura" element={<PermissionGuard requiredPermissions="estructura:gestionar"><EstructuraPage /></PermissionGuard>} />
+              <Route path="usuarios" element={<PermissionGuard requiredPermissions="usuarios:gestionar"><UsuariosPage /></PermissionGuard>} />
+              <Route path="auditoria" element={<PermissionGuard requiredPermissions="auditoria:ver"><AuditoriaPanelPage /></PermissionGuard>} />
+              <Route path="auditoria/log" element={<PermissionGuard requiredPermissions="auditoria:ver"><AuditoriaLogPage /></PermissionGuard>} />
             </Route>
           </Route>
         </Route>

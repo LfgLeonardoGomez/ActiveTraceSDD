@@ -1,0 +1,58 @@
+import { Pencil, Trash2 } from 'lucide-react';
+import { Button } from '@/shared/components/ui/Button';
+import type { SalarioBase } from '../../types/salarios.types';
+
+interface SalarioBaseTableProps {
+  items: SalarioBase[];
+  onEdit: (item: SalarioBase) => void;
+  onDelete: (id: string) => void;
+}
+
+function formatCurrency(v: number): string {
+  return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(v);
+}
+
+export default function SalarioBaseTable({ items, onEdit, onDelete }: SalarioBaseTableProps) {
+  return (
+    <div className="overflow-hidden rounded-lg border border-border">
+      <table className="w-full text-sm">
+        <thead className="bg-muted">
+          <tr>
+            <th className="px-4 py-3 text-left font-medium text-muted-foreground">Rol</th>
+            <th className="px-4 py-3 text-right font-medium text-muted-foreground">Monto</th>
+            <th className="px-4 py-3 text-left font-medium text-muted-foreground">Vigencia desde</th>
+            <th className="px-4 py-3 text-left font-medium text-muted-foreground">Vigencia hasta</th>
+            <th className="px-4 py-3 text-right font-medium text-muted-foreground">Acciones</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border">
+          {items.map((item) => (
+            <tr key={item.id} className="hover:bg-muted/50">
+              <td className="px-4 py-3 font-medium">{item.rol}</td>
+              <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(item.monto)}</td>
+              <td className="px-4 py-3 text-muted-foreground">{item.vigencia_desde}</td>
+              <td className="px-4 py-3 text-muted-foreground">{item.vigencia_hasta}</td>
+              <td className="px-4 py-3 text-right">
+                <div className="flex justify-end gap-1">
+                  <Button variant="ghost" size="icon" onClick={() => onEdit(item)} aria-label="Editar">
+                    <Pencil className="size-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => onDelete(item.id)} aria-label="Eliminar">
+                    <Trash2 className="size-4 text-danger-600" />
+                  </Button>
+                </div>
+              </td>
+            </tr>
+          ))}
+          {items.length === 0 && (
+            <tr>
+              <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                No hay salarios base configurados
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}

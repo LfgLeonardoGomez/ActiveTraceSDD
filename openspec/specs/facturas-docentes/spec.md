@@ -96,3 +96,47 @@ Todas las facturas SHALL tener `tenant_id` (filtrado por defecto en el repositor
 - **WHEN** un usuario FINANZAS de `tenant_A` hace `GET /api/facturas`
 - **THEN** el sistema devuelve únicamente facturas con `tenant_id=tenant_A AND deleted_at IS NULL`.
 
+---
+
+### Requirement: UI — Listado de facturas (Frontend)
+
+La UI SHALL listar facturas con docente, período, estado y monto.
+
+#### Scenario: Tabla de facturas
+- **GIVEN** un usuario FINANZAS
+- **WHEN** la página carga
+- **THEN** una tabla muestra facturas con badges de estado
+
+---
+
+### Requirement: UI — Transición de estado (Frontend)
+
+La UI SHALL permitir marcar una factura como Abonada.
+
+#### Scenario: Marcar como Abonada
+- **GIVEN** una factura pendiente
+- **WHEN** el usuario hace clic en Abonar
+- **THEN** el estado se actualiza a Abonada
+
+---
+
+### Requirement: UI — Detalle de factura (Frontend)
+
+La UI SHALL mostrar metadatos de la factura incluyendo archivo y fecha de pago.
+
+#### Scenario: Panel de detalle
+- **GIVEN** una fila de factura
+- **WHEN** el usuario hace clic en detalle
+- **THEN** un panel muestra los metadatos
+
+---
+
+### Requirement: UI — Separación de facturantes (Frontend)
+
+La UI SHALL excluir facturantes del total de liquidación general.
+
+#### Scenario: Facturante en segmento propio
+- **GIVEN** un facturante
+- **WHEN** se visualiza la liquidación
+- **THEN** aparece solo en el segmento Facturantes
+

@@ -265,3 +265,60 @@ THEN skeleton de tabla o calendario placeholder se muestra
 **Scenario 11: Error state**
 GIVEN la API falla
 THEN se muestra "Error al cargar evaluaciones" con reintento
+
+---
+
+## REQ-ES-05: Admin — ABM Carreras (Frontend Admin)
+
+El componente `CarreraTable` + `CarreraForm` en el módulo admin permite al ADMIN crear, editar y toggle estado de carreras consumiendo `/api/admin/carreras`.
+
+### Scenarios
+
+**Scenario 1: Crear carrera**
+GIVEN un usuario ADMIN
+WHEN agrega una Carrera
+THEN aparece en la lista
+
+**Scenario 2: Toggle estado**
+GIVEN una Carrera existente
+WHEN el estado se togglea
+THEN la lista se actualiza
+
+---
+
+## REQ-ES-06: Admin — ABM Cohortes (Frontend Admin)
+
+El componente `CohorteTable` + `CohorteForm` en el módulo admin permite al ADMIN crear, editar y toggle estado de cohortes con año y vigencia.
+
+### Scenarios
+
+**Scenario 1: Crear cohorte**
+GIVEN un usuario ADMIN
+WHEN agrega una Cohorte
+THEN aparece en el tab Cohortes
+
+---
+
+## REQ-ES-07: Admin — ABM Materias (Frontend Admin)
+
+El componente `MateriaTable` + `MateriaForm` en el módulo admin permite al ADMIN crear, editar y toggle estado de materias.
+
+### Scenarios
+
+**Scenario 1: Crear materia**
+GIVEN un usuario ADMIN
+WHEN agrega una Materia
+THEN aparece en el tab Materias
+
+---
+
+## REQ-ES-08: Admin — Filtros de estructura (Frontend Admin)
+
+El módulo admin SHALL filtrar carreras, cohortes y materias por nombre y estado.
+
+### Scenarios
+
+**Scenario 1: Búsqueda por nombre**
+GIVEN un catálogo con items
+WHEN el usuario busca por nombre
+THEN solo los items que coinciden se muestran

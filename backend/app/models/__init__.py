@@ -37,6 +37,7 @@ from app.models.tarea import (
     EstadoTarea,
 )
 from app.models.programa_materia import ProgramaMateria, FechaAcademica
+from app.models.mensaje import Mensaje
 
 __all__ = [
     "BaseModelMixin",
@@ -76,4 +77,5 @@ __all__ = [
     "EstadoTarea",
     "ProgramaMateria",
     "FechaAcademica",
+    "Mensaje",
 ]

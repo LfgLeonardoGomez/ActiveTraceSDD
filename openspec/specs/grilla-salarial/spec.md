@@ -115,3 +115,52 @@ Toda creación, modificación o eliminación de filas en `SalarioBase`, `Salario
 - **WHEN** un usuario FINANZAS hace `DELETE` sobre una fila de grilla
 - **THEN** se inserta una fila en `audit_log` con `detalle: { "operacion": "SOFT_DELETE" }` y la fila queda con `deleted_at` poblado pero permanece en la tabla.
 
+---
+
+### Requirement: UI — ABM SalarioBase (Frontend)
+
+La UI SHALL permitir crear, editar y eliminar SalarioBase con rol, monto y vigencia.
+
+#### Scenario: Crear SalarioBase
+- **GIVEN** un usuario FINANZAS
+- **WHEN** agrega un SalarioBase
+- **THEN** la entrada aparece en la tabla
+
+#### Scenario: Editar SalarioBase
+- **GIVEN** una entrada existente
+- **WHEN** se edita
+- **THEN** la lista se actualiza
+
+---
+
+### Requirement: UI — ABM SalarioPlus (Frontend)
+
+La UI SHALL permitir crear, editar y eliminar SalarioPlus con grupo, rol, monto y vigencia.
+
+#### Scenario: Crear SalarioPlus
+- **GIVEN** un usuario
+- **WHEN** agrega un SalarioPlus
+- **THEN** aparece en la tabla de Plus
+
+---
+
+### Requirement: UI — Alerta de conflicto de vigencia (Frontend)
+
+La UI DEBE mostrar alertas inline de solapamiento de fechas.
+
+#### Scenario: Solapamiento detectado
+- **GIVEN** entradas solapadas para el mismo rol
+- **WHEN** el usuario guarda
+- **THEN** un mensaje inline aparece
+
+---
+
+### Requirement: UI — Filtros de grilla (Frontend)
+
+La UI SHALL filtrar por rol y estado de vigencia.
+
+#### Scenario: Filtro por rol
+- **GIVEN** múltiples entradas
+- **WHEN** se filtra por rol
+- **THEN** solo las entradas que coinciden se muestran
+

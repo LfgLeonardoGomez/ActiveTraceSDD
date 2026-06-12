@@ -41,6 +41,18 @@ const COORDINACION_ITEMS: NavItem[] = [
   { label: 'Monitor', path: '/coordinacion/monitor', icon: Activity, permission: 'monitor:ver' },
 ];
 
+const FINANZAS_ITEMS: NavItem[] = [
+  { label: 'Liquidaciones', path: '/finanzas/liquidaciones', icon: DollarSign, permission: 'liquidaciones:ver' },
+  { label: 'Salarios', path: '/finanzas/salarios', icon: DollarSign, permission: 'liquidaciones:configurar-salarios' },
+  { label: 'Facturas', path: '/finanzas/facturas', icon: DollarSign, permission: 'facturas:ver' },
+];
+
+const ADMIN_ITEMS: NavItem[] = [
+  { label: 'Estructura', path: '/admin/estructura', icon: BookOpen, permission: 'estructura:gestionar' },
+  { label: 'Usuarios', path: '/admin/usuarios', icon: Users, permission: 'usuarios:gestionar' },
+  { label: 'Auditoría', path: '/admin/auditoria', icon: Activity, permission: 'auditoria:ver' },
+];
+
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
@@ -97,28 +109,88 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               Coordinación
             </p>
             {COORDINACION_ITEMS.filter((item) => can(item.permission)).map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname.startsWith(item.path);
+              const Icon = item.icon;
+              const isActive = location.pathname.startsWith(item.path);
 
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                onClick={onClose}
-                className={cn(
-                  'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                  isActive
-                    ? 'bg-sidebar-accent text-sidebar-foreground'
-                    : 'text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-foreground',
-                )}
-              >
-                <Icon className="size-5" />
-                <span>{item.label}</span>
-              </NavLink>
-            );
-          })}
-        </div>
-      )}
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  onClick={onClose}
+                  className={cn(
+                    'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                    isActive
+                      ? 'bg-sidebar-accent text-sidebar-foreground'
+                      : 'text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-foreground',
+                  )}
+                >
+                  <Icon className="size-5" />
+                  <span>{item.label}</span>
+                </NavLink>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Finanzas section */}
+        {FINANZAS_ITEMS.some((item) => can(item.permission)) && (
+          <div className="pt-4">
+            <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-sidebar-muted">
+              Finanzas
+            </p>
+            {FINANZAS_ITEMS.filter((item) => can(item.permission)).map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname.startsWith(item.path);
+
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  onClick={onClose}
+                  className={cn(
+                    'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                    isActive
+                      ? 'bg-sidebar-accent text-sidebar-foreground'
+                      : 'text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-foreground',
+                  )}
+                >
+                  <Icon className="size-5" />
+                  <span>{item.label}</span>
+                </NavLink>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Admin section */}
+        {ADMIN_ITEMS.some((item) => can(item.permission)) && (
+          <div className="pt-4">
+            <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-sidebar-muted">
+              Administración
+            </p>
+            {ADMIN_ITEMS.filter((item) => can(item.permission)).map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname.startsWith(item.path);
+
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  onClick={onClose}
+                  className={cn(
+                    'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                    isActive
+                      ? 'bg-sidebar-accent text-sidebar-foreground'
+                      : 'text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-foreground',
+                  )}
+                >
+                  <Icon className="size-5" />
+                  <span>{item.label}</span>
+                </NavLink>
+              );
+            })}
+          </div>
+        )}
       </nav>
 
       {/* Footer */}

@@ -30,3 +30,36 @@ ATRASADOS_VER_ROLES: list[tuple[str, bool]] = [
     ("COORDINADOR", False),
     ("ADMIN", False),
 ]
+
+# C-20: permisos de perfil y mensajería interna
+PERFIL_EDITAR_PERMISO = {
+    "codigo": "perfil:editar",
+    "nombre": "Editar perfil propio",
+    "modulo": "perfil",
+    "descripcion": "Editar los datos personales del perfil propio",
+}
+
+MENSAJERIA_LEER_PERMISO = {
+    "codigo": "mensajeria:leer",
+    "nombre": "Leer mensajes",
+    "modulo": "mensajeria",
+    "descripcion": "Ver inbox y leer threads de mensajería interna",
+}
+
+MENSAJERIA_RESPONDER_PERMISO = {
+    "codigo": "mensajeria:responder",
+    "nombre": "Responder mensajes",
+    "modulo": "mensajeria",
+    "descripcion": "Responder en threads de mensajería interna",
+}
+
+# Todos los roles autenticados tienen acceso a perfil y mensajería
+C20_PERMISOS_ROLES: list[tuple[str, bool]] = [
+    ("TUTOR", False),
+    ("PROFESOR", False),
+    ("COORDINADOR", False),
+    ("ADMIN", False),
+    ("ALUMNO", False),
+    ("NEXO", False),
+    ("FINANZAS", False),
+]

@@ -177,3 +177,68 @@ Todo cálculo de liquidación (GET sobre período abierto o cerrado) y todo cier
 - **WHEN** un usuario FINANZAS cierra exitosamente un período
 - **THEN** se registra un audit log con `accion: "LIQUIDACION_CERRAR"`, `detalle: { cohorte_id, periodo, total_filas, total_sin_factura, total_con_factura }`.
 
+---
+
+### Requirement: UI — Tabla segmentada de liquidaciones (Frontend)
+
+La UI SHALL presentar tres segmentos (General, NEXO, Facturantes) con subtotales por segmento, mostrando el detalle de cada docente con base, plus, comisiones y total.
+
+#### Scenario: Tres segmentos con subtotales
+- **GIVEN** un usuario FINANZAS selecciona cohorte y mes
+- **WHEN** la liquidación carga
+- **THEN** tres tablas aparecen con subtotales por segmento
+
+#### Scenario: Empty state
+- **GIVEN** no hay data para el periodo
+- **WHEN** la página carga
+- **THEN** se muestra estado vacío
+
+---
+
+### Requirement: UI — KPIs de cabecera (Frontend)
+
+La UI SHALL displayar `total_sin_factura` y `total_con_factura` como tarjetas de resumen.
+
+#### Scenario: KPIs visibles
+- **GIVEN** un período con datos
+- **WHEN** la vista renderiza
+- **THEN** dos tarjetas muestran los totales
+
+---
+
+### Requirement: UI — Flujo de cierre (Frontend)
+
+La UI SHALL mostrar un diálogo de confirmación antes de cerrar y deshabilitar acciones después del cierre.
+
+#### Scenario: Cierre con confirmación
+- **GIVEN** una liquidación abierta
+- **WHEN** el usuario hace clic en Cerrar y confirma
+- **THEN** se muestra éxito y las acciones se deshabilitan
+
+#### Scenario: Liquidación ya cerrada
+- **GIVEN** una liquidación cerrada
+- **WHEN** se visualiza
+- **THEN** Cerrar está deshabilitado
+
+---
+
+### Requirement: UI — Historial de liquidaciones (Frontend)
+
+La UI SHALL listar liquidaciones cerradas con filtros por cohorte y mes.
+
+#### Scenario: Filtro por mes
+- **GIVEN** liquidaciones cerradas
+- **WHEN** el usuario aplica un filtro de mes
+- **THEN** solo los períodos que coinciden se muestran
+
+---
+
+### Requirement: UI — Detalle por docente (Frontend)
+
+La UI SHALL mostrar el detalle a nivel docente con base, plus, comisiones y total.
+
+#### Scenario: Panel de detalle
+- **GIVEN** una fila de docente
+- **WHEN** el usuario hace clic en el docente
+- **THEN** un panel muestra el desglose
+
