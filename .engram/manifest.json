@@ -96,6 +96,14 @@
       "sessions": 0,
       "memories": 5,
       "prompts": 0
+    },
+    {
+      "id": "c0e95cec",
+      "created_by": "Npheria",
+      "created_at": "2026-06-12T16:57:45Z",
+      "sessions": 0,
+      "memories": 3,
+      "prompts": 0
     }
   ]
 }
