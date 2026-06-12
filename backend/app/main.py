@@ -35,6 +35,7 @@ from app.api.v1.routers.programas import router as programas_router
 from app.api.v1.routers.fechas_academicas import router as fechas_academicas_router
 from app.modules.liquidaciones import router as liquidaciones_router
 from app.modules.liquidaciones.exception_handlers import register_exception_handlers
+from app.api.v1.routers.auditoria import router as auditoria_router
 
 settings = Settings()
 
@@ -81,3 +82,4 @@ app.include_router(tareas_router)
 app.include_router(programas_router)
 app.include_router(fechas_academicas_router)
 app.include_router(liquidaciones_router)
+app.include_router(auditoria_router)
