@@ -38,30 +38,31 @@ Las cohortes (ej.: "MAR-2026") pueden pertenecer a una carrera específica o ser
 
 ---
 
-### PA-22 — ¿Cuántas claves de Plus existen y cómo se mapean a materias?
+### ~~PA-22~~ — CERRADA en C-18: Mapeo materia → grupo de Plus
 
-El modelo de liquidación define un **Plus** por combinación `(clave, rol)`, donde la clave agrupa familias de materias (ej.: `PROG` para materias de Programación). Ver [RN-31](05_reglas_de_negocio.md#rn-31) a [RN-38](05_reglas_de_negocio.md#rn-38).
+**Resolución** (implementada en C-18, `app/modules/liquidaciones/models/materia_grupo_plus.py`):
 
-**Preguntas abiertas**:
-
-- ¿Cuáles son todas las claves de Plus que existen en el dominio (ej.: `PROG`, `BD`, `ING`, `MAT`, etc.)?
-- ¿Qué materia cae en qué clave? ¿Hay materias sin clave asignada?
-- ¿Ese mapeo es configurable por tenant o está fijo para toda la plataforma?
-- ¿Lo define el ADMIN del tenant o viene preconfigurado desde la institución?
+- Se introduce la entidad `MateriaGrupoPlus(id, tenant_id, materia_id, grupo, desde, hasta)` con vigencia temporal.
+- El mapeo **vive en el módulo de liquidaciones**, no en estructura-academica (el grupo es un atributo contable, no académico).
+- El mapeo es **configurable por tenant** vía FINANZAS con permiso `liquidaciones:configurar-salarios`.
+- Las claves de grupo son strings libres (ej: "PROG", "BD", "MAT") — el tenant los define.
+- Materias sin mapeo vigente no generan plus (solo contribuyen a la base).
+- El historial se preserva: al recategorizar, se cierra la fila anterior y se crea una nueva. Las liquidaciones cerradas reproducen el cálculo original.
 
 ---
 
-### PA-23 — ¿Cómo se calcula el Plus cuando un docente tiene N comisiones de la misma clave?
+### ~~PA-23~~ — CERRADA en C-18: Acumulación y tope de Plus
 
-Si un PROFESOR tiene tres comisiones de materias que caen bajo la clave `PROG`:
+**Resolución** (implementada en C-18, `app/modules/liquidaciones/models/salario_plus.py` + `domain/calculadora_liquidacion.py`):
 
-**Preguntas abiertas**:
+- Se **acumula** por defecto: `N × Plus(grupo, rol)` donde N = cantidad de comisiones del docente en materias del grupo.
+- `SalarioPlus.tope_acumulacion: DECIMAL NULLABLE`:
+  - `NULL` = sin tope (acumulación ilimitada).
+  - `> 0` = máximo de comisiones del grupo que acumulan plus: `N_efectivo = min(N_comisiones, tope)`.
+- El tope es configurable **por instancia `(grupo × rol)`** — varía entre grupos y entre roles.
+- Algoritmo: `monto_plus += SalarioPlus.monto × N_efectivo` para cada grupo aplicable.
 
-- ¿Se acumula `3 × Plus(PROG, PROFESOR)` o se aplica una sola vez sin importar la cantidad de comisiones?
-- ¿Existe un tope de acumulación?
-- ¿La lógica cambia según el rol (TUTOR vs. PROFESOR vs. COORDINADOR)?
-
-**Impacto**: es la regla de negocio central del módulo de liquidaciones. Sin ella no se puede implementar el cálculo.
+**Impacto**: implementado en `LiquidacionCalcService.calcular_periodo()` y testeado en `tests/liquidaciones/test_domain_calculadora.py`.
 
 ---
 

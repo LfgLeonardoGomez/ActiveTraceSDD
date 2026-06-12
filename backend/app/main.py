@@ -33,6 +33,8 @@ from app.api.v1.routers.avisos import router as avisos_router
 from app.api.v1.routers.tareas import router as tareas_router
 from app.api.v1.routers.programas import router as programas_router
 from app.api.v1.routers.fechas_academicas import router as fechas_academicas_router
+from app.modules.liquidaciones import router as liquidaciones_router
+from app.modules.liquidaciones.exception_handlers import register_exception_handlers
 
 settings = Settings()
 
@@ -46,11 +48,17 @@ async def lifespan(app: FastAPI):
     yield
 
 
+def _register_modules(app: FastAPI) -> None:
+    """Registra todos los módulos de la aplicación."""
+    register_exception_handlers(app)
+
+
 app = FastAPI(
     title="activia-trace",
     version="0.1.0",
     lifespan=lifespan,
 )
+_register_modules(app)
 
 app.include_router(health_router, tags=["health"])
 app.include_router(auth_router)
@@ -72,3 +80,4 @@ app.include_router(avisos_router)
 app.include_router(tareas_router)
 app.include_router(programas_router)
 app.include_router(fechas_academicas_router)
+app.include_router(liquidaciones_router)

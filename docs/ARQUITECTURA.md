@@ -133,6 +133,25 @@ backend/
 │   ├── schemas/                 # Pydantic DTOs
 │   ├── repositories/            # Queries (tenant-scoped por defecto)
 │   ├── services/                # Lógica de negocio
+│   ├── modules/
+│   │   └── liquidaciones/       # C-18: liquidaciones y honorarios docentes
+│   │       ├── models/          #   SalarioBase, SalarioPlus, MateriaGrupoPlus,
+│   │       │                    #   Liquidacion, Factura, enums
+│   │       ├── schemas/         #   DTOs Pydantic v2 (extra='forbid')
+│   │       ├── repositories/    #   Repos con tenant scope + overlap check + guard inmutabilidad
+│   │       ├── services/        #   SalarioBaseService, SalarioPlusService,
+│   │       │                    #   MateriaGrupoPlusService, LiquidacionCalcService,
+│   │       │                    #   LiquidacionCierreService, HistorialService, FacturaService
+│   │       ├── routers/         #   salario_base, salario_plus, materia_grupo_plus,
+│   │       │                    #   liquidaciones, facturas
+│   │       ├── domain/          #   calculadora_liquidacion.py, segmentador.py,
+│   │       │                    #   file_storage_port.py (interfaz hexagonal D6)
+│   │       ├── infrastructure/  #   LocalFileStorage (stub de dev para file storage)
+│   │       ├── exceptions.py    #   LiquidacionCerradaError, VigenciaSolapadaError,
+│   │       │                    #   PeriodoYaCerradoError, UsuarioNoFacturanteError, etc.
+│   │       ├── permissions.py   #   Catálogo liquidaciones:* y facturas:* (D8)
+│   │       ├── audit_codes.py   #   LiquidacionesAuditAction (LIQUIDACION_*, SALARIO_*, etc.)
+│   │       └── seed.py          #   seed_liquidaciones_permissions/audit_codes (idempotente)
 │   ├── integrations/
 │   │   ├── n8n_client.py
 │   │   └── moodle_ws.py         # Cliente Moodle Web Services
@@ -273,6 +292,27 @@ activia-trace se integra con **Moodle** (el LMS) a través de su API de Web Serv
 
 - **Types**: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`
 - **Scopes**: `auth`, `tenancy`, `users`, `alumnos`, `materias`, `comisiones`, `entregas`, `comunicacion`, `equipos`, `encuentros`, `coloquios`, `liquidaciones`, `auditoria`, `moodle`, `api`, `ui`
+
+### Catálogo de audit codes (C-18 — liquidaciones)
+
+Nuevos códigos agregados en `app/modules/liquidaciones/audit_codes.py`:
+
+| Código | Descripción |
+|--------|-------------|
+| `LIQUIDACION_CALCULAR` | Cálculo de un período (GET abierto o cerrado) |
+| `LIQUIDACION_CERRAR` | Cierre inmutable de un período |
+| `SALARIO_BASE_CREAR` | Creación de entrada de SalarioBase |
+| `SALARIO_BASE_MODIFICAR` | Modificación de SalarioBase |
+| `SALARIO_BASE_ELIMINAR` | Soft delete de SalarioBase |
+| `SALARIO_PLUS_CREAR` | Creación de entrada de SalarioPlus |
+| `SALARIO_PLUS_MODIFICAR` | Modificación de SalarioPlus |
+| `SALARIO_PLUS_ELIMINAR` | Soft delete de SalarioPlus |
+| `MATERIA_GRUPO_PLUS_CREAR` | Asignación de grupo a materia |
+| `MATERIA_GRUPO_PLUS_MODIFICAR` | Modificación del mapeo materia → grupo |
+| `MATERIA_GRUPO_PLUS_ELIMINAR` | Soft delete del mapeo |
+| `FACTURA_CARGAR` | Carga de factura docente |
+| `FACTURA_ABONAR` | Transición Pendiente → Abonada |
+| `FACTURA_DELETE` | Soft delete de factura |
 
 ### Código
 
