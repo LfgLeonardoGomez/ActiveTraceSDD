@@ -6,6 +6,17 @@ import TwoFactorPage from '@/features/auth/pages/TwoFactorPage';
 import ForgotPasswordPage from '@/features/auth/pages/ForgotPasswordPage';
 import ResetPasswordPage from '@/features/auth/pages/ResetPasswordPage';
 import DashboardHome from '@/features/auth/pages/DashboardHome';
+import ComisionesPage from '@/features/comisiones/pages/ComisionesPage';
+import ComisionDetailPage from '@/features/comisiones/pages/ComisionDetailPage';
+import { ResumenTab } from '@/features/comisiones/components/ResumenTab';
+import { ImportarTab } from '@/features/comisiones/components/ImportarTab';
+import { UmbralTab } from '@/features/comisiones/components/UmbralTab';
+import { AtrasadosTab } from '@/features/comisiones/components/AtrasadosTab';
+import { RankingTab } from '@/features/comisiones/components/RankingTab';
+import { NotasFinalesTab } from '@/features/comisiones/components/NotasFinalesTab';
+import { TpsSinCorregirTab } from '@/features/comisiones/components/TpsSinCorregirTab';
+import { MonitorTab } from '@/features/comisiones/components/MonitorTab';
+import { ComunicacionesTab } from '@/features/comisiones/components/ComunicacionesTab';
 
 export default function App() {
   return (
@@ -21,7 +32,18 @@ export default function App() {
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
             <Route path="/" element={<DashboardHome />} />
-            {/* Future feature routes will go here */}
+            <Route path="/comisiones" element={<ComisionesPage />} />
+            <Route path="/comisiones/:materiaId" element={<ComisionDetailPage />}>
+              <Route index element={<ResumenTab />} />
+              <Route path="importar" element={<ImportarTab />} />
+              <Route path="umbral" element={<UmbralTab />} />
+              <Route path="atrasados" element={<AtrasadosTab />} />
+              <Route path="ranking" element={<RankingTab />} />
+              <Route path="notas-finales" element={<NotasFinalesTab />} />
+              <Route path="tps-sin-corregir" element={<TpsSinCorregirTab />} />
+              <Route path="monitor" element={<MonitorTab />} />
+              <Route path="comunicaciones" element={<ComunicacionesTab />} />
+            </Route>
           </Route>
         </Route>
 
