@@ -13,6 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import security
+from app.core.encryption import decrypt_pii, hash_email_for_lookup
 from app.core.config import Settings
 from app.core.dependencies import CurrentUser, get_current_active_user, get_db, require_permission
 from app.models.password_reset_token import PasswordResetToken
@@ -119,21 +120,24 @@ async def login(
     ip = _get_client_ip(request)
     await _check_rate_limit(db, "login", ip, body.email)
 
-    # Buscar usuario por email (necesitamos tenant_id; por ahora usamos un lookup)
-    # En MVP, asumimos un tenant default si no se provee. Pero esto es un hack.
-    # El dominio real requiere conocer el tenant antes del login.
-    # Solucion: el email es unico global o buscamos en todos los tenants.
-    # Segun el spec, authenticate(email, password, tenant_id) requiere tenant_id.
-    # Como no tenemos un selector de tenant en login, buscamos por email globalmente
-    # y validamos password contra el usuario encontrado.
-    # Esto NO es multi-tenant estricto pero es necesario para login sin contexto previo.
+    # Look up user by email_hash (HMAC-SHA256 of normalised email).
+    # Rule #12: email is stored as AES-256-GCM ciphertext — plaintext equality
+    # never matches. hash_email_for_lookup produces a deterministic token that
+    # works across all tenants (cross-tenant login is the documented exception
+    # OQ-C07-02 — login has no prior tenant context).
+    # .scalars().first() + ORDER BY created_at: avoids MultipleResultsFound when
+    # the same email exists in multiple tenants (unique index is per-tenant, not
+    # global). scalar_one_or_none() would raise 500 in that scenario.
+    # NULL email_hash rows fall through to the DUMMY_HASH timing-safe 401 below.
+    # TODO Q-02: extract this lookup into AuthService (cross-tenant variant);
+    #            Rule #11 violation (business logic in router) accepted for hotfix.
+    _email_hash = hash_email_for_lookup(body.email)
     result = await db.execute(
-        select(Usuario).where(
-            Usuario.email == body.email,
-            Usuario.deleted_at.is_(None),
-        )
+        select(Usuario)
+        .where(Usuario.email_hash == _email_hash, Usuario.deleted_at.is_(None))
+        .order_by(Usuario.created_at)
     )
-    user = result.scalar_one_or_none()
+    user = result.scalars().first()
 
     if user is None or user.password_hash is None:
         # Delay constante para timing-safe enumeration (dummy hash valido)
@@ -242,13 +246,15 @@ async def forgot_password(
     ip = _get_client_ip(request)
     await _check_rate_limit(db, "forgot", ip, body.email)
 
+    # Look up user by email_hash — same rationale as login (Rule #12, OQ-C07-02).
+    # TODO Q-02: extract into AuthService.
+    _forgot_hash = hash_email_for_lookup(body.email)
     result = await db.execute(
-        select(Usuario).where(
-            Usuario.email == body.email,
-            Usuario.deleted_at.is_(None),
-        )
+        select(Usuario)
+        .where(Usuario.email_hash == _forgot_hash, Usuario.deleted_at.is_(None))
+        .order_by(Usuario.created_at)
     )
-    user = result.scalar_one_or_none()
+    user = result.scalars().first()
 
     if user is not None:
         import secrets
@@ -547,13 +553,23 @@ async def start_impersonation(
         roles=[],
     )
 
+    # Decrypt target email for the audit log — Rule #12 + R-07.
+    # target.email is AES-256-GCM ciphertext; the audit detalle must store
+    # plaintext so administrators can read it. Fallback to raw value for
+    # legacy rows that may still have plaintext email (not yet backfilled).
+    # TODO Q-02: move to an AuthService method after auth.py is split.
+    try:
+        _target_plain_email = decrypt_pii(target.email)
+    except Exception:
+        _target_plain_email = target.email  # legacy plaintext fallback
+
     await record_audit(
         db,
         actor_id=current_user.real_actor_id,
         tenant_id=current_user.tenant_id,
         accion=AuditAction.IMPERSONACION_INICIAR,
         impersonado_id=target.id,
-        detalle={"target_email": target.email},
+        detalle={"target_email": _target_plain_email},
         ip=_get_client_ip(request),
         user_agent=_get_user_agent(request),
     )

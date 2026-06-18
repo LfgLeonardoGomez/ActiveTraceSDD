@@ -18,6 +18,7 @@ from app.models.rate_limit_bucket import RateLimitBucket
 from app.models.refresh_token import RefreshToken
 from app.models.two_factor_enrollment import TwoFactorEnrollment
 from app.models.user import Usuario
+from app.repositories.usuarios import UsuarioRepository
 
 
 async def _create_test_user(
@@ -27,19 +28,26 @@ async def _create_test_user(
     password: str,
     is_2fa_enabled: bool = False,
 ) -> Usuario:
-    """Helper: crea usuario con password hash."""
-    user = Usuario(
+    """Helper: creates a user via repository so email is AES-256 ciphertext
+    and email_hash is computed (HMAC-SHA256).
+
+    All fields are passed in one create() call to avoid a second commit that
+    would flush the in-memory plaintext back to the DB (UsuarioRepository
+    decrypts the returned instance in-place; a subsequent commit would rewrite
+    the plaintext, invalidating the ciphertext — a known session-level quirk).
+
+    Rule #4: no DB mocks — uses a real DB session.
+    Task 1.1/1.2: tenant_id goes to the repo CONSTRUCTOR, not to create().
+    """
+    repo = UsuarioRepository(db_session, tenant_id)
+    user = await repo.create(
         nombre="Test",
         apellidos="User",
         email=email,
         estado="activo",
-        tenant_id=tenant_id,
         password_hash=security.hash_password(password),
         is_2fa_enabled=is_2fa_enabled,
     )
-    db_session.add(user)
-    await db_session.commit()
-    await db_session.refresh(user)
     return user
 
 

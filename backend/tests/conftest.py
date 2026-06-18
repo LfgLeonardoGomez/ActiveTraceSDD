@@ -74,3 +74,18 @@ async def default_tenant(db_session: AsyncSession):
     await db_session.commit()
     await db_session.refresh(tenant)
     return tenant
+
+
+@pytest_asyncio.fixture
+async def second_tenant(db_session: AsyncSession):
+    """Fixture que crea un segundo tenant para tests cross-tenant."""
+    from app.models.tenant import Tenant
+    tenant = Tenant(
+        nombre="Second Tenant",
+        slug="second",
+        activo=True,
+    )
+    db_session.add(tenant)
+    await db_session.commit()
+    await db_session.refresh(tenant)
+    return tenant
