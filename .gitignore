@@ -17,6 +17,6 @@ __pycache__/
 .coverage
 .pytest_cache/
 .coverage
-
+backend/.coverage
 .atl/
 .env
