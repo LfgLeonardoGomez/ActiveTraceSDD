@@ -48,9 +48,30 @@ async def _comunicacion_dispatch_loop() -> None:
     )
     interval = settings.comunicacion_dispatch_interval_seconds
 
+    # Gate: if N8N_WEBHOOK_URL is not configured, log once and exit the coroutine.
+    # The padron loop continues unaffected via asyncio.gather.
+    if not settings.n8n_webhook_url:
+        logger.warning(
+            "comunicacion_dispatch_disabled",
+            extra={
+                "event": "dispatch_disabled",
+                "reason": "N8N_WEBHOOK_URL unset",
+            },
+        )
+        return
+
+    # Startup: reset stuck Enviando messages once before entering the loop.
+    # Best-effort — skipped if DB is not ready yet (AsyncSessionLocal is None).
+    from app.core.database import AsyncSessionLocal
+    if AsyncSessionLocal is not None:
+        startup_session = AsyncSessionLocal()
+        try:
+            await worker.startup_run(startup_session)
+        finally:
+            await startup_session.close()
+
     while True:
         try:
-            from app.core.database import AsyncSessionLocal
             if AsyncSessionLocal is None:
                 logger.warning("comunicacion_dispatch_loop_db_not_ready")
                 await asyncio.sleep(interval)

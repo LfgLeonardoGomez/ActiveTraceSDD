@@ -49,6 +49,36 @@ class ComunicacionWorker:
         self.stale_threshold_minutes = stale_threshold_minutes
         self.n8n_timeout = n8n_timeout
 
+    async def startup_run(self, db_session: Any) -> int:
+        """Reset stuck Enviando messages once at worker startup.
+
+        Must be called once before the dispatch loop starts. Subsequent calls
+        to run_once do NOT perform this reset (startup-only lifecycle).
+
+        Note: first run_once does not depend on a prior successful startup_run —
+        the existing AsyncSessionLocal is None guard handles not-ready state.
+
+        Args:
+            db_session: Async SQLAlchemy session (short-lived, caller closes it).
+
+        Returns:
+            Number of messages reset to Pendiente (0 if webhook not configured).
+        """
+        if not self.webhook_url:
+            return 0
+
+        from uuid import UUID as _UUID
+        _FAKE_TENANT = _UUID("00000000-0000-0000-0000-000000000001")
+        repo_global = _GlobalComunicacionRepository(db_session, _FAKE_TENANT)
+
+        reseteados = await repo_global.resetear_colgados(self.stale_threshold_minutes)
+        if reseteados > 0:
+            logger.info(
+                "comunicacion_worker_reset_colgados",
+                extra={"event": "reset_colgados", "count": reseteados},
+            )
+        return reseteados
+
     async def run_once(self, db_session: Any) -> None:
         """Ejecuta una pasada completa del worker de despacho.
 
@@ -57,7 +87,7 @@ class ComunicacionWorker:
         """
         # 7.4 — No procesar si N8N_WEBHOOK_URL no está configurada
         if not self.webhook_url:
-            logger.error(
+            logger.warning(
                 "comunicacion_worker_no_webhook",
                 extra={
                     "event": "worker_skip_no_webhook",
@@ -66,29 +96,12 @@ class ComunicacionWorker:
             )
             return
 
-        # Repository sin scope de tenant (worker procesa todos los tenants)
-        # Usamos un repo con tenant_id ficticio para resetear_colgados (global)
-        # y luego repos por tenant para despacho seguro.
-        # Para operaciones globales (resetear_colgados, get_todos_pendientes)
-        # necesitamos un repo que pase la validación de BaseRepository.
-        # Solución: usamos un UUID fijo que sabemos que no filtra (el método
-        # resetear_colgados y get_todos_pendientes no usan self.tenant_id).
-        #
-        # Nota de diseño: estos métodos en el repository NO filtran por tenant_id
-        # (son métodos específicos del worker), así que el tenant_id del repo
-        # es irrelevante para ellos. Usamos un repositorio con tenant_id fake
-        # solo para pasar la validación del BaseRepository.
+        # Repository without tenant scope — worker processes all tenants.
+        # Global operations (get_todos_pendientes_elegibles) do not filter by
+        # tenant_id; a fake UUID is used only to satisfy BaseRepository validation.
         from uuid import UUID as _UUID
         _FAKE_TENANT = _UUID("00000000-0000-0000-0000-000000000001")
         repo_global = _GlobalComunicacionRepository(db_session, _FAKE_TENANT)
-
-        # Resetear mensajes colgados al arranque
-        reseteados = await repo_global.resetear_colgados(self.stale_threshold_minutes)
-        if reseteados > 0:
-            logger.info(
-                "comunicacion_worker_reset_colgados",
-                extra={"event": "reset_colgados", "count": reseteados},
-            )
 
         # Tomar batch de mensajes elegibles
         mensajes = await repo_global.get_todos_pendientes_elegibles(self.batch_size)

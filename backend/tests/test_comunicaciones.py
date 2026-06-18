@@ -1373,3 +1373,303 @@ async def test_worker_descifra_destinatario_correctamente(db_session: AsyncSessi
     # El destinatario enviado a N8N es el email descifrado (texto plano)
     assert sent_payloads[0]["destinatario"] == email_original
     assert sent_payloads[0]["asunto"] == "Asunto final"
+
+
+# ---------------------------------------------------------------------------
+# NEW TESTS — fix-comunicaciones-outbound
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# 1.2 (R-02) — Preview: literal prose dots preserved, only placeholder dots normalized
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_preview_dots_in_prose_preserved(db_session: AsyncSession):
+    """Prose dots in template body must not be altered; only placeholder dots are normalized."""
+    tenant = await _crear_tenant(db_session)
+    usuario = await _crear_usuario(db_session, tenant.id)
+
+    svc = _make_service(db_session, tenant.id, usuario.id)
+    perm = _perm_enviar()
+
+    dest = DestinatarioSchema(alumno_id=uuid4(), nombre="Juan Pérez", email="juan@example.com")
+    req = ComunicacionPreviewRequestSchema(
+        destinatarios=[dest],
+        plantilla_asunto="Asunto",
+        plantilla_cuerpo="Saludos. {{alumno.nombre}}. Atte.",
+    )
+
+    resultado = await svc.preview(req, perm)
+
+    assert resultado[0].cuerpo_renderizado == "Saludos. Juan Pérez. Atte."
+
+
+# ---------------------------------------------------------------------------
+# 1.3 (R-02) — Preview: unknown variable → 422 with public dotted key in detail
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_preview_unknown_variable_422_shows_public_key(db_session: AsyncSession):
+    """Unknown variable must raise 422 and the detail must contain the public dot-notation key."""
+    tenant = await _crear_tenant(db_session)
+    usuario = await _crear_usuario(db_session, tenant.id)
+
+    svc = _make_service(db_session, tenant.id, usuario.id)
+    perm = _perm_enviar()
+
+    dest = DestinatarioSchema(alumno_id=uuid4(), nombre="Test", email="t@t.com")
+    req = ComunicacionPreviewRequestSchema(
+        destinatarios=[dest],
+        plantilla_asunto="Hola",
+        plantilla_cuerpo="Tel: {{alumno.telefono}}",
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        await svc.preview(req, perm)
+
+    assert exc_info.value.status_code == 422
+    # The detail must expose the public dot-notation form, not the flat internal key
+    assert "alumno.telefono" in exc_info.value.detail
+
+
+# ---------------------------------------------------------------------------
+# 1.4 (R-17) — get_pendientes_para_despacho excludes unapproved rows
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_get_pendientes_para_despacho_excluye_no_aprobados(db_session: AsyncSession):
+    """get_pendientes_para_despacho must only return rows with aprobado=True."""
+    tenant = await _crear_tenant(db_session)
+    usuario = await _crear_usuario(db_session, tenant.id)
+    materia = await _crear_materia(db_session, tenant.id)
+    repo = _make_repo(db_session, tenant.id)
+
+    approved = Comunicacion(
+        id=uuid4(),
+        tenant_id=tenant.id,
+        enviado_por=usuario.id,
+        materia_id=materia.id,
+        destinatario=encrypt_pii("a@test.com"),
+        asunto="Asunto",
+        cuerpo="Cuerpo",
+        estado=EstadoComunicacion.pendiente.value,
+        lote_id=uuid4(),
+        aprobado=True,
+    )
+    unapproved = Comunicacion(
+        id=uuid4(),
+        tenant_id=tenant.id,
+        enviado_por=usuario.id,
+        materia_id=materia.id,
+        destinatario=encrypt_pii("b@test.com"),
+        asunto="Asunto",
+        cuerpo="Cuerpo",
+        estado=EstadoComunicacion.pendiente.value,
+        lote_id=uuid4(),
+        aprobado=False,
+    )
+    db_session.add(approved)
+    db_session.add(unapproved)
+    await db_session.commit()
+
+    resultado = await repo.get_pendientes_para_despacho(batch_size=50)
+
+    ids_returned = {r.id for r in resultado}
+    assert approved.id in ids_returned
+    assert unapproved.id not in ids_returned
+
+
+# ---------------------------------------------------------------------------
+# 1.5 (R-17) — get_pendientes_para_despacho respects tenant isolation
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_get_pendientes_para_despacho_respeta_tenant(db_session: AsyncSession):
+    """get_pendientes_para_despacho scoped to tenant A must not return tenant B rows."""
+    tenant_a = await _crear_tenant(db_session)
+    tenant_b = await _crear_tenant(db_session)
+    usuario_a = await _crear_usuario(db_session, tenant_a.id)
+    usuario_b = await _crear_usuario(db_session, tenant_b.id)
+    materia_a = await _crear_materia(db_session, tenant_a.id)
+    materia_b = await _crear_materia(db_session, tenant_b.id)
+
+    row_a = Comunicacion(
+        id=uuid4(),
+        tenant_id=tenant_a.id,
+        enviado_por=usuario_a.id,
+        materia_id=materia_a.id,
+        destinatario=encrypt_pii("a@a.com"),
+        asunto="Asunto",
+        cuerpo="Cuerpo",
+        estado=EstadoComunicacion.pendiente.value,
+        lote_id=uuid4(),
+        aprobado=True,
+    )
+    row_b = Comunicacion(
+        id=uuid4(),
+        tenant_id=tenant_b.id,
+        enviado_por=usuario_b.id,
+        materia_id=materia_b.id,
+        destinatario=encrypt_pii("b@b.com"),
+        asunto="Asunto",
+        cuerpo="Cuerpo",
+        estado=EstadoComunicacion.pendiente.value,
+        lote_id=uuid4(),
+        aprobado=True,
+    )
+    db_session.add(row_a)
+    db_session.add(row_b)
+    await db_session.commit()
+
+    repo_a = ComunicacionRepository(db_session, tenant_a.id)
+    resultado = await repo_a.get_pendientes_para_despacho(batch_size=50)
+
+    ids_returned = {r.id for r in resultado}
+    assert row_a.id in ids_returned
+    assert row_b.id not in ids_returned
+
+
+# ---------------------------------------------------------------------------
+# 1.6 (R-08) — dispatch loop: webhook unset → exactly ONE WARNING, no ERROR, loop exits
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_dispatch_loop_no_webhook_logs_once_warning(db_session: AsyncSession, caplog):
+    """_comunicacion_dispatch_loop must emit exactly one WARNING and return if webhook unset."""
+    import asyncio
+    from app.workers.main import _comunicacion_dispatch_loop
+
+    mock_settings = MagicMock()
+    mock_settings.n8n_webhook_url = None
+    mock_settings.comunicacion_batch_size = 50
+    mock_settings.comunicacion_stale_threshold_minutes = 10
+    mock_settings.n8n_timeout_seconds = 10
+    mock_settings.comunicacion_dispatch_interval_seconds = 30
+
+    with patch("app.workers.main.Settings", return_value=mock_settings):
+        import logging
+        with caplog.at_level(logging.WARNING, logger="app.workers.main"):
+            # The coroutine should return quickly (not loop forever)
+            await asyncio.wait_for(_comunicacion_dispatch_loop(), timeout=2.0)
+
+    warning_events = [
+        r for r in caplog.records
+        if r.levelno == logging.WARNING and "dispatch_disabled" in r.getMessage()
+    ]
+    error_records = [r for r in caplog.records if r.levelno >= logging.ERROR]
+
+    assert len(warning_events) == 1, f"Expected 1 dispatch_disabled WARNING, got {warning_events}"
+    assert len(error_records) == 0, f"Expected 0 ERRORs, got {error_records}"
+
+
+# ---------------------------------------------------------------------------
+# 1.7 (R-08) — run_once with no webhook: WARNING not ERROR, no state changes
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_run_once_no_webhook_emits_warning_not_error(db_session: AsyncSession, caplog):
+    """ComunicacionWorker.run_once with webhook_url=None must emit WARNING, never ERROR."""
+    import logging
+
+    worker = ComunicacionWorker(webhook_url=None, batch_size=50)
+
+    with caplog.at_level(logging.WARNING, logger="app.workers.comunicacion_worker"):
+        for _ in range(3):
+            await worker.run_once(db_session)
+
+    error_records = [r for r in caplog.records if r.levelno >= logging.ERROR]
+    warning_records = [r for r in caplog.records if r.levelno == logging.WARNING]
+
+    assert len(error_records) == 0, f"Expected 0 ERRORs, got {error_records}"
+    assert len(warning_records) == 3, f"Expected 3 WARNINGs (one per call), got {warning_records}"
+
+
+# ---------------------------------------------------------------------------
+# 1.8 (R-14) — startup_run resets stale once; run_once does NOT call resetear_colgados
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_startup_run_resets_stale_once_run_once_does_not(db_session: AsyncSession):
+    """startup_run(db) resets stale rows; run_once never calls resetear_colgados."""
+    from unittest.mock import patch as mock_patch
+    from sqlalchemy import update as sa_update
+
+    tenant = await _crear_tenant(db_session)
+    usuario = await _crear_usuario(db_session, tenant.id)
+    materia = await _crear_materia(db_session, tenant.id)
+
+    # Seed first stale Enviando row (older than threshold)
+    stale1 = Comunicacion(
+        id=uuid4(),
+        tenant_id=tenant.id,
+        enviado_por=usuario.id,
+        materia_id=materia.id,
+        destinatario=encrypt_pii("s1@test.com"),
+        asunto="Asunto",
+        cuerpo="Cuerpo",
+        estado=EstadoComunicacion.enviando.value,
+        lote_id=uuid4(),
+        aprobado=True,
+    )
+    db_session.add(stale1)
+    await db_session.commit()
+    await db_session.execute(
+        sa_update(Comunicacion)
+        .where(Comunicacion.id == stale1.id)
+        .values(updated_at=datetime.now(timezone.utc) - timedelta(minutes=15))
+    )
+    await db_session.commit()
+
+    worker = ComunicacionWorker(
+        webhook_url="http://n8n.test/webhook",
+        batch_size=50,
+        stale_threshold_minutes=10,
+    )
+
+    # startup_run must reset the first stale row
+    count = await worker.startup_run(db_session)
+    assert count == 1
+
+    await db_session.refresh(stale1)
+    assert stale1.estado == EstadoComunicacion.pendiente.value
+
+    # Seed second stale row — run_once must NOT reset it
+    stale2 = Comunicacion(
+        id=uuid4(),
+        tenant_id=tenant.id,
+        enviado_por=usuario.id,
+        materia_id=materia.id,
+        destinatario=encrypt_pii("s2@test.com"),
+        asunto="Asunto",
+        cuerpo="Cuerpo",
+        estado=EstadoComunicacion.enviando.value,
+        lote_id=uuid4(),
+        aprobado=True,
+    )
+    db_session.add(stale2)
+    await db_session.commit()
+    await db_session.execute(
+        sa_update(Comunicacion)
+        .where(Comunicacion.id == stale2.id)
+        .values(updated_at=datetime.now(timezone.utc) - timedelta(minutes=15))
+    )
+    await db_session.commit()
+
+    # run_once x2 — second stale row must remain Enviando (run_once doesn't reset)
+    mock_n8n = AsyncMock()
+    mock_n8n.send = AsyncMock(return_value=None)
+    with mock_patch("app.workers.comunicacion_worker.N8NClient", return_value=mock_n8n):
+        await worker.run_once(db_session)
+        await worker.run_once(db_session)
+
+    await db_session.refresh(stale2)
+    assert stale2.estado == EstadoComunicacion.enviando.value, (
+        "run_once must NOT call resetear_colgados; stale2 should remain Enviando"
+    )

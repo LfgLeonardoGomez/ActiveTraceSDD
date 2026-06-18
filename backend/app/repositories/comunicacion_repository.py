@@ -238,8 +238,7 @@ class ComunicacionRepository(BaseRepository[Comunicacion]):
     ) -> list[Comunicacion]:
         """Toma mensajes elegibles para despacho del tenant actual.
 
-        Elegible = Pendiente + (aprobado=True OR tenant no requiere aprobación).
-        El worker verifica el flag del tenant antes de llamar a este método.
+        Elegible = Pendiente + aprobado=True + no soft-deleted.
 
         Returns:
             Lista ordenada por created_at ASC, máximo batch_size registros.
@@ -249,6 +248,7 @@ class ComunicacionRepository(BaseRepository[Comunicacion]):
             .where(
                 Comunicacion.tenant_id == self.tenant_id,
                 Comunicacion.estado == EstadoComunicacion.pendiente.value,
+                Comunicacion.aprobado.is_(True),
                 Comunicacion.deleted_at.is_(None),
             )
             .order_by(Comunicacion.created_at.asc())

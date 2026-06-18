@@ -12,6 +12,7 @@ Reglas duras:
     - Nunca acceso directo a DB en Services (siempre vía Repository).
 """
 
+import re
 import string
 from math import ceil
 from uuid import UUID
@@ -33,8 +34,21 @@ from app.schemas.comunicacion import (
 )
 from app.schemas.rbac_schema import PermissionContext
 
-# Variables de plantilla disponibles para sustitución
+# Variables de plantilla disponibles para sustitución (public dot-notation)
 _VARIABLES_DISPONIBLES = {"alumno.nombre", "alumno.email"}
+
+# Regex that matches a ${...} placeholder body (after {{ → ${ conversion)
+_PLACEHOLDER = re.compile(r"\$\{([^}]*)\}")
+
+
+def _normalize_key(public_key: str) -> str:
+    """Convert a public dot-notation key to a flat underscore identifier.
+
+    Example: "alumno.nombre" → "alumno_nombre"
+    Injective over the closed set {alumno.nombre, alumno.email} since neither
+    member contains underscores, so there are no collisions.
+    """
+    return public_key.replace(".", "_")
 
 
 class ComunicacionService:
@@ -96,25 +110,34 @@ class ComunicacionService:
         Raises:
             HTTPException 422: si la plantilla tiene variables no disponibles.
         """
-        # Normalizar {{variable}} → ${variable} para string.Template
-        normalizada = plantilla.replace("{{", "${").replace("}}", "}")
+        # Step 1: convert public syntax {{ → ${ and }} → }
+        after_braces = plantilla.replace("{{", "${").replace("}}", "}")
 
+        # Step 2: normalize dots inside placeholder bodies ONLY (prose dots untouched)
+        # "${alumno.nombre}" → "${alumno_nombre}"
+        normalizada = _PLACEHOLDER.sub(
+            lambda m: "${" + _normalize_key(m.group(1)) + "}",
+            after_braces,
+        )
+
+        # Step 3: build flat-keyed value dict matching the normalized placeholders
         variables_contexto = {
-            "alumno.nombre": nombre,
-            "alumno.email": email,
+            _normalize_key("alumno.nombre"): nombre,
+            _normalize_key("alumno.email"): email,
         }
 
         try:
             tmpl = string.Template(normalizada)
-            # safe_substitute deja variables faltantes sin error → usamos substitute
-            # para detectar variables inválidas
+            # safe_substitute leaves missing vars intact → use substitute to detect invalids
             return tmpl.substitute(variables_contexto)
         except KeyError as exc:
-            variable_invalida = str(exc).strip("'")
+            flat = str(exc).strip("'")
+            # Cosmetic un-flatten: "alumno_nombre" → "alumno.nombre" for display
+            publica = flat.replace("_", ".", 1)
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=(
-                    f"Variable de plantilla '{variable_invalida}' no disponible. "
+                    f"Variable de plantilla '{publica}' no disponible. "
                     f"Variables permitidas: {sorted(_VARIABLES_DISPONIBLES)}"
                 ),
             ) from exc

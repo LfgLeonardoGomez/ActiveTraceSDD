@@ -26,20 +26,52 @@ El sistema SHALL delegar el envío real del email a N8N mediante `POST {N8N_WEBH
 - **WHEN** el webhook de N8N devuelve error HTTP (4xx/5xx) o expira el timeout
 - **THEN** el sistema transiciona el mensaje a `Error`, registra el motivo en `error_detalle` y continúa con el siguiente mensaje del lote sin bloquear
 
-#### Scenario: N8N_WEBHOOK_URL no configurado
-- **WHEN** `N8N_WEBHOOK_URL` no está definida en el entorno
-- **THEN** el worker registra un error crítico en el log y NO toma mensajes para procesar (evita transicionar a `Enviando` sin poder despachar)
+### Requirement: N8N_WEBHOOK_URL no configurado — comportamiento del worker
+
+The system MUST check for the presence of `N8N_WEBHOOK_URL` ONCE at dispatch loop startup, before entering the polling loop. If the URL is absent, the system MUST log exactly ONE message at level WARNING and MUST NOT enter the `while True` loop. No per-cycle log entry at any level SHALL be emitted for a missing webhook URL.
+
+As defense-in-depth, any in-worker log call for a missing webhook URL MUST use WARNING level (not ERROR), ensuring that the missing-URL condition is never classified as a runtime error.
+
+#### Scenario: Dispatch loop with N8N_WEBHOOK_URL unset — single WARNING, no loop entered
+
+- GIVEN `N8N_WEBHOOK_URL` is not set in the environment
+- WHEN `_comunicacion_dispatch_loop` is invoked N times (e.g., across N scheduler ticks)
+- THEN exactly ONE WARNING log entry is emitted for the missing webhook condition
+- AND no ERROR log entry is emitted for this condition
+- AND no `Comunicacion` row transitions to `Enviando`
+
+#### Scenario: Dispatch loop with N8N_WEBHOOK_URL set — normal operation
+
+- GIVEN `N8N_WEBHOOK_URL` is set to a valid URL
+- WHEN `_comunicacion_dispatch_loop` starts
+- THEN no warning about missing webhook is emitted and the loop enters its normal polling cycle
 
 ### Requirement: Reseteo de mensajes colgados al iniciar el worker
-El sistema SHALL, al arrancar el worker, resetear a `Pendiente` todos los mensajes que estén en estado `Enviando` desde hace más de `COMUNICACION_STALE_THRESHOLD_MINUTES` minutos (default 10).
+
+The system SHALL perform `resetear_colgados` EXACTLY ONCE per worker process lifetime, during the startup phase before the polling loop begins. A dedicated `startup_run(db)` method on `ComunicacionWorker` SHALL encapsulate this call. The `run_once(db)` method MUST NOT invoke `resetear_colgados`.
+
+#### Scenario: startup_run resets stuck messages once at startup
+
+- GIVEN the worker process starts and there are `Comunicacion` rows in state `Enviando` older than the stale threshold
+- WHEN `startup_run(db)` is called once before the loop
+- THEN those rows are transitioned to `Pendiente`
+- AND `resetear_colgados` is called exactly once across the worker's lifetime
+
+#### Scenario: run_once does NOT call resetear_colgados
+
+- GIVEN the worker is running its normal polling cycle
+- WHEN `run_once(db)` is called M times (M >= 1) after startup
+- THEN `resetear_colgados` is NOT invoked during any of those M calls
 
 #### Scenario: Mensaje colgado en Enviando reseteado al arranque
-- **WHEN** el worker arranca y encuentra un mensaje en `Enviando` con `updated_at` hace más de 10 minutos
-- **THEN** el sistema lo transiciona a `Pendiente` para que sea reprocesado en el próximo ciclo
+
+- WHEN the worker starts and finds a message in `Enviando` with `updated_at` more than `COMUNICACION_STALE_THRESHOLD_MINUTES` minutes ago
+- THEN the system transitions it to `Pendiente` for reprocessing in the next cycle
 
 #### Scenario: Mensaje reciente en Enviando no se toca
-- **WHEN** el worker arranca y encuentra un mensaje en `Enviando` con `updated_at` hace menos de 10 minutos
-- **THEN** el sistema lo deja en `Enviando` (puede estar siendo procesado por otro ciclo)
+
+- WHEN the worker starts and finds a message in `Enviando` with `updated_at` less than `COMUNICACION_STALE_THRESHOLD_MINUTES` minutes ago
+- THEN the system leaves it in `Enviando`
 
 ### Requirement: N8NClient como capa de integración aislada
 El sistema SHALL encapsular la comunicación con N8N en `integrations/n8n_client.py`. Esta clase SHALL ser inyectable (instanciada con `webhook_url`) para permitir mocking en tests.
