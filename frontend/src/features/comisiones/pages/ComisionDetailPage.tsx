@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Outlet, useParams } from 'react-router-dom';
 import { TabNav } from '../components/TabNav';
+import { ComisionSwitcher } from '../components/ComisionSwitcher';
 import { ClearDataDialog } from '../components/ClearDataDialog';
 import { Trash2 } from 'lucide-react';
 
@@ -14,6 +15,9 @@ export default function ComisionDetailPage() {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between border-b border-neutral-200 pb-4">
+        <ComisionSwitcher currentId={materiaId} />
+      </div>
       <TabNav materiaId={materiaId} />
       <Outlet context={{ materiaId }} />
 
