@@ -11,7 +11,7 @@ export default function ComisionesPage() {
 
   useEffect(() => {
     if (!isLoading && !isError && comisiones?.length === 1) {
-      navigate(`/comisiones/${comisiones[0].materia_id}`, { replace: true });
+      navigate(`/comisiones/${comisiones[0].id}`, { replace: true });
     }
   }, [comisiones, isLoading, isError, navigate]);
 
