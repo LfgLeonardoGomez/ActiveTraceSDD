@@ -87,7 +87,27 @@ class EvaluacionService:
     async def list_convocatorias(
         self, page: int, page_size: int
     ) -> dict:
+        from sqlalchemy import select  # noqa: PLC0415
+
+        from app.models.estructura import Cohorte, Materia  # noqa: PLC0415
+
         items_raw, total = await self._repo.list_with_metrics(page, page_size)
+
+        # Batch-resolve materia/cohorte names (one query per entity — no N+1)
+        materia_ids = {r["materia_id"] for r in items_raw if r["materia_id"] is not None}
+        cohorte_ids = {r["cohorte_id"] for r in items_raw if r["cohorte_id"] is not None}
+
+        async def _nombre_map(model: object, ids: set) -> dict:
+            if not ids:
+                return {}
+            rows = await self.db_session.execute(
+                select(model.id, model.nombre).where(model.id.in_(ids))  # type: ignore[attr-defined]
+            )
+            return {row[0]: row[1] for row in rows.all()}
+
+        materia_map = await _nombre_map(Materia, materia_ids)
+        cohorte_map = await _nombre_map(Cohorte, cohorte_ids)
+
         items = [
             EvaluacionResponseSchema(
                 id=r["id"],
@@ -101,6 +121,8 @@ class EvaluacionService:
                 reservas_activas=r["reservas_activas"],
                 cupos_libres_por_dia=r["cupos_libres_por_dia"],
                 created_at=r["created_at"],
+                materia_nombre=materia_map.get(r["materia_id"]),
+                cohorte_nombre=cohorte_map.get(r["cohorte_id"]),
             )
             for r in items_raw
         ]

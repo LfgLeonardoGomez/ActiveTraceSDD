@@ -59,6 +59,9 @@ class EvaluacionResponseSchema(BaseModel):
     reservas_activas: int
     cupos_libres_por_dia: int
     created_at: datetime
+    # Denormalised names (resolved in the service layer — no N+1)
+    materia_nombre: str | None = None
+    cohorte_nombre: str | None = None
 
 
 # ------------------------------------------------------------------

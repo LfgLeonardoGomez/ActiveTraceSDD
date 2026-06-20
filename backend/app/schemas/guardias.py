@@ -65,6 +65,11 @@ class GuardiaRead(BaseModel):
     comentarios: str | None = None
     created_at: str | None = None
     updated_at: str | None = None
+    # Denormalised names (resolved from the JOIN in GuardiaRepository._base_join_query — no N+1)
+    tutor_nombre: str | None = None
+    materia_nombre: str | None = None
+    carrera_nombre: str | None = None
+    cohorte_nombre: str | None = None
 
 
 class GuardiaFilterParams(BaseModel):

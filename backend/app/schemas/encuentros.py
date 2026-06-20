@@ -125,6 +125,12 @@ class InstanciaRead(BaseModel):
     comentario: str | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
+    # Denormalised names (resolved in the router via batch queries — no N+1)
+    materia_nombre: str | None = None
+    # cohorte/docente live on the slot, not on the instancia directly.
+    # They are resolved when slot_id is not None; None otherwise.
+    cohorte_nombre: str | None = None
+    docente_nombre: str | None = None
 
 
 class InstanciaFilterParams(BaseModel):

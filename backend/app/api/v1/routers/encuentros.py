@@ -217,6 +217,12 @@ async def listar_instancias(
     fecha_hasta: Annotated[date | None, Query()] = None,
 ) -> PaginatedInstanciaResponse:
     """Lista instancias de encuentro con filtros."""
+    from sqlalchemy import select  # noqa: PLC0415
+
+    from app.models.estructura import Cohorte, Materia  # noqa: PLC0415
+    from app.models.slot_encuentro import SlotEncuentro  # noqa: PLC0415
+    from app.models.user import Usuario  # noqa: PLC0415
+
     service = EncuentroService(db, current_user.tenant_id)
     filters = InstanciaFilterParams(
         materia_id=materia_id,
@@ -225,10 +231,74 @@ async def listar_instancias(
         fecha_desde=fecha_desde,
         fecha_hasta=fecha_hasta,
     )
-    return await service.listar_instancias(
+    paginated = await service.listar_instancias(
         filters=filters,
         limit=limit,
         offset=offset,
+    )
+
+    # Batch-resolve denormalised names (one query per entity — no N+1).
+    items = paginated.items
+    materia_ids = {i.materia_id for i in items if i.materia_id is not None}
+    slot_ids = {i.slot_id for i in items if i.slot_id is not None}
+
+    # Materia names
+    materia_map: dict = {}
+    if materia_ids:
+        rows = await db.execute(
+            select(Materia.id, Materia.nombre).where(Materia.id.in_(materia_ids))
+        )
+        materia_map = {r[0]: r[1] for r in rows.all()}
+
+    # Slots (for cohorte_id and creador_id)
+    slot_cohorte_map: dict = {}  # slot_id -> cohorte_id
+    slot_creador_map: dict = {}  # slot_id -> creador_id
+    if slot_ids:
+        rows = await db.execute(
+            select(SlotEncuentro.id, SlotEncuentro.cohorte_id, SlotEncuentro.creador_id).where(
+                SlotEncuentro.id.in_(slot_ids)
+            )
+        )
+        for r in rows.all():
+            slot_cohorte_map[r[0]] = r[1]
+            slot_creador_map[r[0]] = r[2]
+
+    # Cohorte names (from slot.cohorte_id)
+    cohorte_ids = {cid for cid in slot_cohorte_map.values() if cid is not None}
+    cohorte_map: dict = {}
+    if cohorte_ids:
+        rows = await db.execute(
+            select(Cohorte.id, Cohorte.nombre).where(Cohorte.id.in_(cohorte_ids))
+        )
+        cohorte_map = {r[0]: r[1] for r in rows.all()}
+
+    # Docente names (from slot.creador_id)
+    creador_ids = {cid for cid in slot_creador_map.values() if cid is not None}
+    docente_map: dict = {}
+    if creador_ids:
+        rows = await db.execute(
+            select(Usuario.id, Usuario.nombre, Usuario.apellidos).where(
+                Usuario.id.in_(creador_ids)
+            )
+        )
+        docente_map = {r[0]: f"{r[1]} {r[2]}".strip() for r in rows.all()}
+
+    enriched = []
+    for inst in items:
+        inst.materia_nombre = materia_map.get(inst.materia_id)
+        s_id = inst.slot_id
+        if s_id is not None:
+            cohorte_id = slot_cohorte_map.get(s_id)
+            creador_id = slot_creador_map.get(s_id)
+            inst.cohorte_nombre = cohorte_map.get(cohorte_id) if cohorte_id else None
+            inst.docente_nombre = docente_map.get(creador_id) if creador_id else None
+        enriched.append(inst)
+
+    return PaginatedInstanciaResponse(
+        items=enriched,
+        total=paginated.total,
+        limit=paginated.limit,
+        offset=paginated.offset,
     )
 
 

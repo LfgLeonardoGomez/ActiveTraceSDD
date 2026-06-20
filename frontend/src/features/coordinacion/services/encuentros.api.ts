@@ -17,6 +17,9 @@ interface InstanciaApiItem {
   comentario: string | null;
   created_at: string | null;
   updated_at: string | null;
+  materia_nombre: string | null;
+  cohorte_nombre: string | null;
+  docente_nombre: string | null;
 }
 
 // Raw shape returned by GET /api/v1/guardias (GuardiaRead)
@@ -34,6 +37,10 @@ interface GuardiaApiItem {
   comentarios: string | null;
   created_at: string | null;
   updated_at: string | null;
+  tutor_nombre: string | null;
+  materia_nombre: string | null;
+  carrera_nombre: string | null;
+  cohorte_nombre: string | null;
 }
 
 function mapInstanciaApiToEncuentro(item: InstanciaApiItem): Encuentro {
@@ -41,11 +48,11 @@ function mapInstanciaApiToEncuentro(item: InstanciaApiItem): Encuentro {
   const estado = item.estado.toLowerCase() as Encuentro['estado'];
   return {
     id: item.id,
-    materia: item.materia_id,
+    materia: item.materia_nombre ?? item.materia_id,
     materia_id: item.materia_id,
-    cohorte: '',
+    cohorte: item.cohorte_nombre ?? '—',
     cohorte_id: '',
-    docente: '',
+    docente: item.docente_nombre ?? '—',
     docente_id: '',
     fecha: item.fecha,
     hora: item.hora,
@@ -63,12 +70,12 @@ function mapGuardiaApiToView(item: GuardiaApiItem): Guardia {
   const [horario_desde = '', horario_hasta = ''] = (item.horario ?? '').split('-');
   return {
     id: item.id,
-    tutor: item.tutor_id,
+    tutor: item.tutor_nombre ?? item.tutor_id,
     tutor_id: item.tutor_id,
-    materia: item.materia_id,
+    materia: item.materia_nombre ?? item.materia_id,
     materia_id: item.materia_id,
-    carrera: item.carrera_id,
-    cohorte: item.cohorte_id,
+    carrera: item.carrera_nombre ?? item.carrera_id,
+    cohorte: item.cohorte_nombre ?? item.cohorte_id,
     dia: item.fecha,
     horario_desde: horario_desde.trim(),
     horario_hasta: horario_hasta.trim(),

@@ -71,8 +71,18 @@ class GuardiaService:
         await self._repo_audit.insert(entry)
 
     def _map_row_to_guardia_read(self, row: tuple[Any, ...]) -> GuardiaRead:
-        """Mapea una tupla de resultado JOIN a GuardiaRead."""
+        """Mapea una tupla de resultado JOIN a GuardiaRead.
+
+        The JOIN in GuardiaRepository._base_join_query returns:
+          row[0] = Guardia ORM object
+          row[1] = tutor_nombre (Usuario.nombre)
+          row[2] = tutor_apellidos (Usuario.apellidos)
+          row[3] = materia_nombre
+          row[4] = carrera_nombre
+          row[5] = cohorte_nombre
+        """
         guardia = row[0]
+        tutor_nombre_completo = f"{row[1] or ''} {row[2] or ''}".strip() if len(row) > 2 else None
         return GuardiaRead.model_validate(
             {
                 "id": guardia.id,
@@ -88,6 +98,10 @@ class GuardiaService:
                 "comentarios": guardia.comentarios,
                 "created_at": str(guardia.created_at) if guardia.created_at else None,
                 "updated_at": str(guardia.updated_at) if guardia.updated_at else None,
+                "tutor_nombre": tutor_nombre_completo or None,
+                "materia_nombre": row[3] if len(row) > 3 else None,
+                "carrera_nombre": row[4] if len(row) > 4 else None,
+                "cohorte_nombre": row[5] if len(row) > 5 else None,
             }
         )
 

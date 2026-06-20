@@ -15,6 +15,8 @@ interface EvaluacionApiItem {
   reservas_activas: number;
   cupos_libres_por_dia: number;
   created_at: string;
+  materia_nombre: string | null;
+  cohorte_nombre: string | null;
 }
 
 // Raw shape returned by GET /api/coloquios/reservas-activas (ReservaResponseSchema)
@@ -31,12 +33,12 @@ interface ReservaApiItem {
 function mapEvaluacionApiToConvocatoria(item: EvaluacionApiItem): Convocatoria {
   return {
     id: item.id,
-    materia: item.materia_id,
+    materia: item.materia_nombre ?? item.materia_id,
     materia_id: item.materia_id,
     // instancia is a free-text string from the API ("Primer Coloquio 2026"), not a number.
     instancia: item.instancia,
     titulo: item.instancia,
-    cohorte: item.cohorte_id,
+    cohorte: item.cohorte_nombre ?? item.cohorte_id,
     cohorte_id: item.cohorte_id,
     dias: [],
     dias_disponibles: item.dias_disponibles,
