@@ -13,6 +13,7 @@ from app.core.database import init_db
 from app.core.logging import init_logging
 from app.core.observability import init_observability
 from app.core.seed_admin import seed_admin
+from app.core.seed_demo import seed_demo
 from app.api.v1.routers.auth import router as auth_router
 from app.api.v1.routers.health import router as health_router
 from app.api.v1.routers.rbac import (
@@ -54,6 +55,7 @@ async def lifespan(app: FastAPI):
     from app.core.database import AsyncSessionLocal
     async with AsyncSessionLocal() as db:
         await seed_admin(db)
+        await seed_demo(db)
     yield
 
 
