@@ -40,6 +40,10 @@ interface AsignacionApiItem {
   comisiones: string[] | null;
   responsable_id: string | null;
   estado_vigencia: string;
+  usuario_nombre: string | null;
+  materia_nombre: string | null;
+  carrera_nombre: string | null;
+  cohorte_nombre: string | null;
 }
 
 // Raw shape returned by GET /api/v1/admin/usuarios (UsuarioListRead — used as a stand-in for docentes)
@@ -57,12 +61,12 @@ interface UsuarioDocenteApiItem {
 function mapAsignacionApiToView(item: AsignacionApiItem): Asignacion {
   return {
     id: item.id,
-    docente: item.usuario_id,
+    docente: item.usuario_nombre ?? item.usuario_id,
     docente_id: item.usuario_id,
-    materia: item.materia_id ?? '—',
+    materia: item.materia_nombre ?? '—',
     materia_id: item.materia_id ?? '',
-    carrera: item.carrera_id ?? '—',
-    cohorte: item.cohorte_id ?? '—',
+    carrera: item.carrera_nombre ?? '—',
+    cohorte: item.cohorte_nombre ?? '—',
     cohorte_id: item.cohorte_id ?? '',
     rol: item.rol,
     fecha_desde: item.desde,

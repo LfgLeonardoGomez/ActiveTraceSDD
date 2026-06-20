@@ -60,6 +60,11 @@ class AsignacionRead(BaseModel):
     cohorte_id: UUID | None = None
     comisiones: list[str] | None = None
     responsable_id: UUID | None = None
+    # Nombres denormalizados (resueltos en el router para mostrar en la tabla)
+    usuario_nombre: str | None = None
+    materia_nombre: str | None = None
+    carrera_nombre: str | None = None
+    cohorte_nombre: str | None = None
     # Computado desde @property estado_vigencia del modelo ORM
     estado_vigencia: str
 

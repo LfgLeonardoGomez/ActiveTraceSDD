@@ -103,8 +103,48 @@ async def listar_asignaciones(
         cohorte_id=cohorte_id,
         incluir_vencidas=incluir_vencidas,
     )
+    # Resolver nombres denormalizados en batch (evita N+1) para que la tabla
+    # muestre docente/materia/carrera/cohorte por nombre y no por UUID.
+    from sqlalchemy import select  # noqa: PLC0415
+
+    from app.models.estructura import Carrera, Cohorte, Materia  # noqa: PLC0415
+    from app.models.user import Usuario  # noqa: PLC0415
+
+    async def _nombre_map(model: object, ids: set[UUID | None]) -> dict:
+        clean = {i for i in ids if i is not None}
+        if not clean:
+            return {}
+        rows = await db.execute(
+            select(model.id, model.nombre).where(model.id.in_(clean))  # type: ignore[attr-defined]
+        )
+        return {row[0]: row[1] for row in rows.all()}
+
+    usuario_ids = {a.usuario_id for a in items}
+    usuario_rows = await db.execute(
+        select(Usuario.id, Usuario.nombre, Usuario.apellidos).where(
+            Usuario.id.in_({i for i in usuario_ids if i is not None})
+        )
+    ) if usuario_ids else None
+    usuario_map = (
+        {r[0]: f"{r[1]} {r[2]}".strip() for r in usuario_rows.all()}
+        if usuario_rows is not None
+        else {}
+    )
+    materia_map = await _nombre_map(Materia, {a.materia_id for a in items})
+    carrera_map = await _nombre_map(Carrera, {a.carrera_id for a in items})
+    cohorte_map = await _nombre_map(Cohorte, {a.cohorte_id for a in items})
+
+    reads = []
+    for a in items:
+        read = AsignacionRead.model_validate(a)
+        read.usuario_nombre = usuario_map.get(a.usuario_id)
+        read.materia_nombre = materia_map.get(a.materia_id)
+        read.carrera_nombre = carrera_map.get(a.carrera_id)
+        read.cohorte_nombre = cohorte_map.get(a.cohorte_id)
+        reads.append(read)
+
     return PaginatedAsignacionesResponse(
-        items=[AsignacionRead.model_validate(a) for a in items],
+        items=reads,
         total=total,
         limit=limit,
         offset=offset,
