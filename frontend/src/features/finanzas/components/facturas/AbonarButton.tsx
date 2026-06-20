@@ -9,7 +9,7 @@ interface AbonarButtonProps {
 }
 
 export default function AbonarButton({ factura, onAbonar, isLoading }: AbonarButtonProps) {
-  if (factura.estado !== 'pendiente') {
+  if (factura.estado !== 'Pendiente') {
     return null;
   }
 

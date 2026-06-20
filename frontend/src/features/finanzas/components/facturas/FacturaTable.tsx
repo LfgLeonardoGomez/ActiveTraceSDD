@@ -8,18 +8,15 @@ interface FacturaTableProps {
   onAbonar: (item: Factura) => void;
 }
 
-function formatCurrency(v: number): string {
-  return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(v);
-}
-
-function statusBadge(estado: Factura['estado']) {
-  const styles: Record<Factura['estado'], string> = {
-    pendiente: 'bg-amber-100 text-amber-700',
-    abonada: 'bg-emerald-100 text-emerald-700',
-    cancelada: 'bg-neutral-100 text-neutral-700',
+function statusBadge(estado: string) {
+  const styles: Record<string, string> = {
+    Pendiente: 'bg-amber-100 text-amber-700',
+    Abonada: 'bg-emerald-100 text-emerald-700',
+    Cancelada: 'bg-neutral-100 text-neutral-700',
   };
+  const style = styles[estado] ?? 'bg-neutral-100 text-neutral-700';
   return (
-    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${styles[estado]}`}>{estado}</span>
+    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${style}`}>{estado}</span>
   );
 }
 
@@ -29,9 +26,9 @@ export default function FacturaTable({ items, onView, onAbonar }: FacturaTablePr
       <table className="w-full text-sm">
         <thead className="bg-muted">
           <tr>
-            <th className="px-4 py-3 text-left font-medium text-muted-foreground">Docente</th>
+            <th className="px-4 py-3 text-left font-medium text-muted-foreground">Usuario ID</th>
             <th className="px-4 py-3 text-left font-medium text-muted-foreground">Período</th>
-            <th className="px-4 py-3 text-right font-medium text-muted-foreground">Monto</th>
+            <th className="px-4 py-3 text-left font-medium text-muted-foreground">Referencia</th>
             <th className="px-4 py-3 text-left font-medium text-muted-foreground">Estado</th>
             <th className="px-4 py-3 text-right font-medium text-muted-foreground">Acciones</th>
           </tr>
@@ -39,16 +36,16 @@ export default function FacturaTable({ items, onView, onAbonar }: FacturaTablePr
         <tbody className="divide-y divide-border">
           {items.map((item) => (
             <tr key={item.id} className="hover:bg-muted/50">
-              <td className="px-4 py-3 font-medium">{item.docente_nombre}</td>
+              <td className="px-4 py-3 font-mono text-xs">{item.usuario_id}</td>
               <td className="px-4 py-3 text-muted-foreground">{item.periodo}</td>
-              <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(item.monto)}</td>
+              <td className="px-4 py-3 truncate max-w-xs text-muted-foreground">{item.referencia_archivo}</td>
               <td className="px-4 py-3">{statusBadge(item.estado)}</td>
               <td className="px-4 py-3 text-right">
                 <div className="flex justify-end gap-1">
                   <Button variant="ghost" size="icon" onClick={() => onView(item)} aria-label="Ver detalle">
                     <Eye className="size-4" />
                   </Button>
-                  {item.estado === 'pendiente' && (
+                  {item.estado === 'Pendiente' && (
                     <Button variant="ghost" size="icon" onClick={() => onAbonar(item)} aria-label="Abonar">
                       <CheckCircle2 className="size-4 text-emerald-600" />
                     </Button>

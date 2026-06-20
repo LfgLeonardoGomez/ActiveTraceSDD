@@ -1,35 +1,41 @@
 import { z } from 'zod';
 
+// Aligned to backend FacturaRead schema (liquidaciones/schemas/factura.py)
 export const FacturaSchema = z
   .object({
     id: z.string().uuid(),
-    docente_id: z.string().uuid(),
-    docente_nombre: z.string(),
+    tenant_id: z.string().uuid(),
+    usuario_id: z.string().uuid(),
     periodo: z.string(),
-    monto: z.number().positive(),
-    estado: z.enum(['pendiente', 'abonada', 'cancelada']),
-    fecha_subida: z.string().datetime(),
-    fecha_pago: z.string().datetime().optional(),
-    archivo_url: z.string().url().optional(),
-  })
-  .strict();
+    detalle: z.string().nullable(),
+    referencia_archivo: z.string(),
+    tamano_kb: z.number().nullable(),
+    estado: z.string(),
+    cargada_at: z.string().datetime(),
+    abonada_at: z.string().datetime().nullable(),
+  });
 
+// Aligned to backend FacturaCreate schema (liquidaciones/schemas/factura.py)
 export const FacturaCreateSchema = z
   .object({
-    docente_id: z.string().uuid(),
+    usuario_id: z.string().uuid(),
     periodo: z.string(),
-    monto: z.number().positive(),
-    archivo: z.instanceof(File).optional(),
+    detalle: z.string().optional(),
+    referencia_archivo: z.string(),
+    tamano_kb: z.number().optional(),
   })
   .strict();
 
+// Aligned to backend FacturaListFilter schema (liquidaciones/schemas/factura.py)
 export const FacturaFiltersSchema = z
   .object({
-    docente_id: z.string().uuid().optional(),
-    periodo: z.string().optional(),
-    estado: z.enum(['pendiente', 'abonada', 'cancelada']).optional(),
+    usuario_id: z.string().uuid().optional(),
+    estado: z.string().optional(),
+    desde: z.string().optional(),
+    hasta: z.string().optional(),
+    q: z.string().optional(),
     page: z.number().int().positive().default(1),
-    page_size: z.number().int().positive().default(50),
+    page_size: z.number().int().positive().default(20),
   })
   .strict();
 

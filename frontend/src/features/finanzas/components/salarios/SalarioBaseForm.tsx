@@ -10,11 +10,11 @@ import type { SalarioBase, SalarioBaseCreate } from '../../types/salarios.types'
 const schema = z.object({
   rol: z.string().min(1, 'El rol es obligatorio'),
   monto: z.coerce.number().positive('El monto debe ser positivo'),
-  vigencia_desde: z.string().min(1, 'La fecha de inicio es obligatoria'),
-  vigencia_hasta: z.string().min(1, 'La fecha de fin es obligatoria'),
-}).refine((data) => data.vigencia_hasta >= data.vigencia_desde, {
+  desde: z.string().min(1, 'La fecha de inicio es obligatoria'),
+  hasta: z.string().optional(),
+}).refine((data) => !data.hasta || data.hasta >= data.desde, {
   message: 'La fecha de fin debe ser posterior o igual a la de inicio',
-  path: ['vigencia_hasta'],
+  path: ['hasta'],
 });
 
 type FormData = z.infer<typeof schema>;
@@ -37,8 +37,8 @@ export default function SalarioBaseForm({ item, onSubmit, onCancel, isLoading }:
     defaultValues: {
       rol: '',
       monto: 0,
-      vigencia_desde: '',
-      vigencia_hasta: '',
+      desde: '',
+      hasta: '',
     },
   });
 
@@ -47,11 +47,11 @@ export default function SalarioBaseForm({ item, onSubmit, onCancel, isLoading }:
       reset({
         rol: item.rol,
         monto: item.monto,
-        vigencia_desde: item.vigencia_desde,
-        vigencia_hasta: item.vigencia_hasta,
+        desde: item.desde,
+        hasta: item.hasta ?? undefined,
       });
     } else {
-      reset({ rol: '', monto: 0, vigencia_desde: '', vigencia_hasta: '' });
+      reset({ rol: '', monto: 0, desde: '', hasta: '' });
     }
   }, [item, reset]);
 
@@ -83,14 +83,14 @@ export default function SalarioBaseForm({ item, onSubmit, onCancel, isLoading }:
             <Input
               label="Vigencia desde"
               type="date"
-              error={errors.vigencia_desde?.message}
-              {...register('vigencia_desde')}
+              error={errors.desde?.message}
+              {...register('desde')}
             />
             <Input
               label="Vigencia hasta"
               type="date"
-              error={errors.vigencia_hasta?.message}
-              {...register('vigencia_hasta')}
+              error={errors.hasta?.message}
+              {...register('hasta')}
             />
           </div>
           <div className="flex justify-end gap-2">

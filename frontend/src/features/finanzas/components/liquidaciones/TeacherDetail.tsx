@@ -19,7 +19,7 @@ export default function TeacherDetail({ item, onClose }: TeacherDetailProps) {
     <div className="fixed inset-0 z-50 flex items-end justify-end bg-black/30 p-4 backdrop-blur-sm sm:items-center sm:justify-center">
       <Card className="w-full max-w-lg animate-in slide-in-from-bottom-4">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-lg">{item.docente_nombre}</CardTitle>
+          <CardTitle className="text-lg font-mono text-sm">{item.usuario_id}</CardTitle>
           <Button variant="ghost" size="icon" onClick={onClose} aria-label="Cerrar">
             <X className="size-4" />
           </Button>
@@ -29,15 +29,11 @@ export default function TeacherDetail({ item, onClose }: TeacherDetailProps) {
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-md bg-muted p-3">
               <div className="text-xs text-muted-foreground">Salario base</div>
-              <div className="text-lg font-semibold tabular-nums">{formatCurrency(item.salario_base)}</div>
+              <div className="text-lg font-semibold tabular-nums">{formatCurrency(item.monto_base)}</div>
             </div>
             <div className="rounded-md bg-muted p-3">
               <div className="text-xs text-muted-foreground">Salario plus</div>
-              <div className="text-lg font-semibold tabular-nums">{formatCurrency(item.salario_plus)}</div>
-            </div>
-            <div className="rounded-md bg-muted p-3">
-              <div className="text-xs text-muted-foreground">Comisiones</div>
-              <div className="text-lg font-semibold tabular-nums">{formatCurrency(item.comisiones)}</div>
+              <div className="text-lg font-semibold tabular-nums">{formatCurrency(item.monto_plus)}</div>
             </div>
             <div className="rounded-md bg-primary-50 p-3">
               <div className="text-xs text-primary-700">Total</div>

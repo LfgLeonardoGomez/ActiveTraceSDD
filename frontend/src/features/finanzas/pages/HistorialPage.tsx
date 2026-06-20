@@ -6,7 +6,7 @@ import { useHistorial } from '../hooks/useLiquidaciones';
 import type { HistorialFilters } from '../types/liquidaciones.types';
 
 export default function HistorialPage() {
-  const [filters, setFilters] = useState<HistorialFilters>({ page: 1, page_size: 50 });
+  const [filters, setFilters] = useState<HistorialFilters>({ page: 1, page_size: 20 });
   const { data, isLoading } = useHistorial(filters);
 
   const handleFilterChange = (key: keyof HistorialFilters, value: string) => {
@@ -25,15 +25,22 @@ export default function HistorialPage() {
         <CardContent className="p-4">
           <div className="flex flex-wrap gap-3">
             <Input
-              label="Mes"
+              label="Desde"
               type="month"
-              value={filters.mes ?? ''}
-              onChange={(e) => handleFilterChange('mes', e.target.value)}
+              value={filters.desde ?? ''}
+              onChange={(e) => handleFilterChange('desde', e.target.value)}
               className="w-48"
             />
             <Input
-              label="Cohorte"
-              placeholder="Buscar cohorte..."
+              label="Hasta"
+              type="month"
+              value={filters.hasta ?? ''}
+              onChange={(e) => handleFilterChange('hasta', e.target.value)}
+              className="w-48"
+            />
+            <Input
+              label="Cohorte ID"
+              placeholder="UUID de la cohorte"
               value={filters.cohorte_id ?? ''}
               onChange={(e) => handleFilterChange('cohorte_id', e.target.value)}
               className="w-64"
@@ -60,8 +67,8 @@ export default function HistorialPage() {
                 <thead className="bg-muted">
                   <tr>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Período</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Cohorte</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Estado</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Cohorte ID</th>
+                    <th className="px-4 py-3 text-right font-medium text-muted-foreground">Filas</th>
                     <th className="px-4 py-3 text-right font-medium text-muted-foreground">Sin factura</th>
                     <th className="px-4 py-3 text-right font-medium text-muted-foreground">Con factura</th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Fecha cierre</th>
@@ -69,23 +76,15 @@ export default function HistorialPage() {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {data.items.map((item) => (
-                    <tr key={item.id} className="hover:bg-muted/50">
+                    <tr key={`${item.cohorte_id}-${item.periodo}`} className="hover:bg-muted/50">
                       <td className="px-4 py-3 font-medium">{item.periodo}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{item.cohorte_nombre}</td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                            item.estado === 'abierto'
-                              ? 'bg-emerald-100 text-emerald-700'
-                              : 'bg-neutral-100 text-neutral-700'
-                          }`}
-                        >
-                          {item.estado}
-                        </span>
-                      </td>
+                      <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{item.cohorte_id}</td>
+                      <td className="px-4 py-3 text-right tabular-nums">{item.total_filas}</td>
                       <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(item.total_sin_factura)}</td>
                       <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(item.total_con_factura)}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{item.fecha_cierre ?? '-'}</td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {new Date(item.cerrada_at).toLocaleDateString('es-AR')}
+                      </td>
                     </tr>
                   ))}
                   {data.items.length === 0 && (

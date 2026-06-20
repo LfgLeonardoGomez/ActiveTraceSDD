@@ -8,7 +8,7 @@ const FACTURAS_KEYS = {
 };
 
 export function useFacturas(filters?: FacturaFilters) {
-  return useQuery<{ items: Factura[]; total: number }>({
+  return useQuery<{ items: Factura[]; total: number; page: number; page_size: number }>({
     queryKey: FACTURAS_KEYS.all(filters),
     queryFn: () => api.getFacturas(filters),
     staleTime: 5 * 60 * 1000,

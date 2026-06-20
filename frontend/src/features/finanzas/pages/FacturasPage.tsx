@@ -9,7 +9,7 @@ import AbonarButton from '../components/facturas/AbonarButton';
 import type { Factura, FacturaFilters } from '../types/facturas.types';
 
 export default function FacturasPage() {
-  const [filters, setFilters] = useState<FacturaFilters>({ page: 1, page_size: 50 });
+  const [filters, setFilters] = useState<FacturaFilters>({ page: 1, page_size: 20 });
   const [detailItem, setDetailItem] = useState<Factura | null>(null);
   const { data, isLoading } = useFacturas(filters);
   const abonar = useAbonarFactura();
@@ -30,18 +30,25 @@ export default function FacturasPage() {
         <CardContent className="p-4">
           <div className="flex flex-wrap gap-3">
             <Input
-              label="Docente"
-              placeholder="Buscar docente..."
-              value={filters.docente_id ?? ''}
-              onChange={(e) => handleFilterChange('docente_id', e.target.value)}
+              label="Buscar"
+              placeholder="Texto en detalle..."
+              value={filters.q ?? ''}
+              onChange={(e) => handleFilterChange('q', e.target.value)}
               className="w-64"
             />
             <Input
-              label="Período"
+              label="Desde"
               placeholder="YYYY-MM"
-              value={filters.periodo ?? ''}
-              onChange={(e) => handleFilterChange('periodo', e.target.value)}
-              className="w-40"
+              value={filters.desde ?? ''}
+              onChange={(e) => handleFilterChange('desde', e.target.value)}
+              className="w-36"
+            />
+            <Input
+              label="Hasta"
+              placeholder="YYYY-MM"
+              value={filters.hasta ?? ''}
+              onChange={(e) => handleFilterChange('hasta', e.target.value)}
+              className="w-36"
             />
             <div className="space-y-2">
               <label className="text-sm font-medium">Estado</label>
@@ -51,9 +58,9 @@ export default function FacturasPage() {
                 className="h-10 w-40 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
               >
                 <option value="">Todos</option>
-                <option value="pendiente">Pendiente</option>
-                <option value="abonada">Abonada</option>
-                <option value="cancelada">Cancelada</option>
+                <option value="Pendiente">Pendiente</option>
+                <option value="Abonada">Abonada</option>
+                <option value="Cancelada">Cancelada</option>
               </select>
             </div>
           </div>
@@ -83,7 +90,7 @@ export default function FacturasPage() {
 
           <div className="flex flex-wrap gap-2">
             {data.items
-              .filter((f) => f.estado === 'pendiente')
+              .filter((f) => f.estado === 'Pendiente')
               .map((f) => (
                 <AbonarButton
                   key={f.id}

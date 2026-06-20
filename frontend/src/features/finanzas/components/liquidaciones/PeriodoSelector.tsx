@@ -1,73 +1,46 @@
-import { useState, useEffect } from 'react';
-import { useCohortesLiquidacion } from '../../hooks/useLiquidaciones';
+import { useState } from 'react';
 import { Input } from '@/shared/components/ui/Input';
 import { Button } from '@/shared/components/ui/Button';
-import { Spinner } from '@/shared/components/ui/Spinner';
 
 interface PeriodoSelectorProps {
-  onChange: (cohorteId: string, mes: string) => void;
+  onChange: (cohorteId: string, periodo: string) => void;
 }
 
 export default function PeriodoSelector({ onChange }: PeriodoSelectorProps) {
-  const { data: cohortes, isLoading } = useCohortesLiquidacion();
+  // NOTE: The /api/v1/liquidaciones/cohortes endpoint does not exist.
+  // Cohorte selection is done via a free-text input until the correct endpoint is available.
   const [cohorteId, setCohorteId] = useState('');
-  const [mes, setMes] = useState(() => {
+  const [periodo, setPeriodo] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
 
-  useEffect(() => {
-    if (cohortes && cohortes.length > 0 && !cohorteId) {
-      setCohorteId(cohortes[0].id);
-    }
-  }, [cohortes, cohorteId]);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (cohorteId && mes) {
-      onChange(cohorteId, mes);
+    if (cohorteId && periodo) {
+      onChange(cohorteId, periodo);
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center gap-2 py-4">
-        <Spinner size="sm" />
-        <span className="text-sm text-muted-foreground">Cargando cohortes...</span>
-      </div>
-    );
-  }
-
   return (
     <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-3">
-      <div className="space-y-2">
-        <label htmlFor="cohorte" className="text-sm font-medium">
-          Cohorte
-        </label>
-        <select
-          id="cohorte"
-          value={cohorteId}
-          onChange={(e) => setCohorteId(e.target.value)}
-          className="h-10 w-48 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-        >
-          <option value="">Seleccionar...</option>
-          {cohortes?.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.nombre}
-            </option>
-          ))}
-        </select>
-      </div>
+      <Input
+        label="Cohorte ID"
+        placeholder="UUID de la cohorte"
+        value={cohorteId}
+        onChange={(e) => setCohorteId(e.target.value)}
+        className="w-64"
+      />
 
       <Input
-        label="Mes"
+        label="Período"
         type="month"
-        value={mes}
-        onChange={(e) => setMes(e.target.value)}
+        value={periodo}
+        onChange={(e) => setPeriodo(e.target.value)}
         className="w-48"
       />
 
-      <Button type="submit" disabled={!cohorteId || !mes}>
+      <Button type="submit" disabled={!cohorteId || !periodo}>
         Consultar
       </Button>
     </form>

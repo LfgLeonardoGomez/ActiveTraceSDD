@@ -7,7 +7,6 @@ const LIQUIDACIONES_KEYS = {
   all: ['finanzas', 'liquidacion'] as const,
   view: (cohorteId: string, periodo: string) => ['finanzas', 'liquidacion', cohorteId, periodo] as const,
   historial: (filters?: HistorialFilters) => ['finanzas', 'historial', filters] as const,
-  cohortes: () => ['finanzas', 'cohortes'] as const,
 };
 
 export function useLiquidacion(cohorteId: string, periodo: string) {
@@ -32,7 +31,7 @@ export function useCerrarLiquidacion() {
 }
 
 export function useHistorial(filters?: HistorialFilters) {
-  return useQuery<{ items: LiquidacionHistorialEntry[]; total: number }>({
+  return useQuery<{ items: LiquidacionHistorialEntry[]; total: number; page: number; page_size: number }>({
     queryKey: LIQUIDACIONES_KEYS.historial(filters),
     queryFn: () => api.getHistorial(filters),
     staleTime: 5 * 60 * 1000,
@@ -40,11 +39,6 @@ export function useHistorial(filters?: HistorialFilters) {
   });
 }
 
-export function useCohortesLiquidacion() {
-  return useQuery<{ id: string; nombre: string }[]>({
-    queryKey: LIQUIDACIONES_KEYS.cohortes(),
-    queryFn: api.getCohortes,
-    staleTime: 30 * 60 * 1000,
-    enabled: !!getAccessToken(),
-  });
-}
+// NOTE: useCohortesLiquidacion removed — /api/v1/liquidaciones/cohortes does not exist.
+// Cohorte lookup should be wired to the comisiones/estructura-academica module endpoint
+// once that endpoint is available.

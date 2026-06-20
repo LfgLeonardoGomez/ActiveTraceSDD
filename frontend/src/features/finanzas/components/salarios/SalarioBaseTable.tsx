@@ -30,8 +30,8 @@ export default function SalarioBaseTable({ items, onEdit, onDelete }: SalarioBas
             <tr key={item.id} className="hover:bg-muted/50">
               <td className="px-4 py-3 font-medium">{item.rol}</td>
               <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(item.monto)}</td>
-              <td className="px-4 py-3 text-muted-foreground">{item.vigencia_desde}</td>
-              <td className="px-4 py-3 text-muted-foreground">{item.vigencia_hasta}</td>
+              <td className="px-4 py-3 text-muted-foreground">{item.desde}</td>
+              <td className="px-4 py-3 text-muted-foreground">{item.hasta ?? '-'}</td>
               <td className="px-4 py-3 text-right">
                 <div className="flex justify-end gap-1">
                   <Button variant="ghost" size="icon" onClick={() => onEdit(item)} aria-label="Editar">

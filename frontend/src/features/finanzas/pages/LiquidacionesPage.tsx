@@ -20,26 +20,26 @@ const SEGMENTS = [
 
 export default function LiquidacionesPage() {
   const navigate = useNavigate();
-  const [selected, setSelected] = useState<{ cohorteId: string; mes: string } | null>(null);
+  const [selected, setSelected] = useState<{ cohorteId: string; periodo: string } | null>(null);
   const [activeSegment, setActiveSegment] = useState('general');
   const [showCierre, setShowCierre] = useState(false);
   const [detailItem, setDetailItem] = useState<LiquidacionItem | null>(null);
 
   const { data, isLoading, error } = useLiquidacion(
     selected?.cohorteId ?? '',
-    selected?.mes ?? '',
+    selected?.periodo ?? '',
   );
 
   const cerrar = useCerrarLiquidacion();
 
-  const handlePeriodoChange = (cohorteId: string, mes: string) => {
-    setSelected({ cohorteId, mes });
+  const handlePeriodoChange = (cohorteId: string, periodo: string) => {
+    setSelected({ cohorteId, periodo });
   };
 
   const handleCerrar = () => {
     if (!selected) return;
     cerrar.mutate(
-      { cohorteId: selected.cohorteId, periodo: selected.mes },
+      { cohorteId: selected.cohorteId, periodo: selected.periodo },
       {
         onSuccess: () => setShowCierre(false),
       },
@@ -48,10 +48,10 @@ export default function LiquidacionesPage() {
 
   const segmentData =
     activeSegment === 'general'
-      ? data?.segmento_general ?? []
+      ? data?.segmentos.general ?? []
       : activeSegment === 'nexo'
-        ? data?.segmento_nexo ?? []
-        : data?.segmento_facturantes ?? [];
+        ? data?.segmentos.nexo ?? []
+        : data?.segmentos.facturantes ?? [];
 
   return (
     <div className="space-y-6 p-6">
@@ -111,7 +111,7 @@ export default function LiquidacionesPage() {
         open={showCierre}
         onClose={() => setShowCierre(false)}
         onConfirm={handleCerrar}
-        periodo={selected?.mes ?? ''}
+        periodo={selected?.periodo ?? ''}
         isLoading={cerrar.isPending}
       />
 

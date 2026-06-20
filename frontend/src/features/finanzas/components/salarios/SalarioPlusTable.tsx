@@ -32,8 +32,8 @@ export default function SalarioPlusTable({ items, onEdit, onDelete }: SalarioPlu
               <td className="px-4 py-3 font-medium">{item.grupo}</td>
               <td className="px-4 py-3 text-muted-foreground">{item.rol}</td>
               <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(item.monto)}</td>
-              <td className="px-4 py-3 text-muted-foreground">{item.vigencia_desde}</td>
-              <td className="px-4 py-3 text-muted-foreground">{item.vigencia_hasta}</td>
+              <td className="px-4 py-3 text-muted-foreground">{item.desde}</td>
+              <td className="px-4 py-3 text-muted-foreground">{item.hasta ?? '-'}</td>
               <td className="px-4 py-3 text-right">
                 <div className="flex justify-end gap-1">
                   <Button variant="ghost" size="icon" onClick={() => onEdit(item)} aria-label="Editar">

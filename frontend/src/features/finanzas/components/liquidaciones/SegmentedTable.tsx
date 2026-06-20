@@ -9,7 +9,7 @@ interface SegmentedTableProps {
 }
 
 export default function SegmentedTable({ items, segment, onRowClick }: SegmentedTableProps) {
-  const [sortField, setSortField] = useState<keyof LiquidacionItem>('docente_nombre');
+  const [sortField, setSortField] = useState<keyof LiquidacionItem>('usuario_id');
   const [sortAsc, setSortAsc] = useState(true);
 
   const sorted = [...items].sort((a, b) => {
@@ -26,11 +26,10 @@ export default function SegmentedTable({ items, segment, onRowClick }: Segmented
   const total = items.reduce((sum, i) => sum + i.total, 0);
 
   const headers: { key: keyof LiquidacionItem; label: string }[] = [
-    { key: 'docente_nombre', label: 'Docente' },
+    { key: 'usuario_id', label: 'Usuario' },
     { key: 'rol', label: 'Rol' },
-    { key: 'salario_base', label: 'Salario base' },
-    { key: 'salario_plus', label: 'Salario plus' },
-    { key: 'comisiones', label: 'Comisiones' },
+    { key: 'monto_base', label: 'Salario base' },
+    { key: 'monto_plus', label: 'Salario plus' },
     { key: 'total', label: 'Total' },
   ];
 
@@ -64,18 +63,17 @@ export default function SegmentedTable({ items, segment, onRowClick }: Segmented
         <tbody className="divide-y divide-border">
           {sorted.map((item) => (
             <tr
-              key={item.docente_id}
+              key={item.usuario_id}
               className={cn(
                 'transition-colors hover:bg-muted/50',
                 onRowClick && 'cursor-pointer',
               )}
               onClick={() => onRowClick?.(item)}
             >
-              <td className="px-4 py-3 font-medium">{item.docente_nombre}</td>
+              <td className="px-4 py-3 font-mono text-xs">{item.usuario_id}</td>
               <td className="px-4 py-3 text-muted-foreground">{item.rol}</td>
-              <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(item.salario_base)}</td>
-              <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(item.salario_plus)}</td>
-              <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(item.comisiones)}</td>
+              <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(item.monto_base)}</td>
+              <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(item.monto_plus)}</td>
               <td className="px-4 py-3 text-right font-semibold tabular-nums">{formatCurrency(item.total)}</td>
             </tr>
           ))}
@@ -89,7 +87,7 @@ export default function SegmentedTable({ items, segment, onRowClick }: Segmented
         </tbody>
         <tfoot className="bg-muted/50">
           <tr>
-            <td colSpan={5} className="px-4 py-3 text-right font-medium">
+            <td colSpan={4} className="px-4 py-3 text-right font-medium">
               Subtotal {segment}
             </td>
             <td className="px-4 py-3 text-right font-bold tabular-nums">{formatCurrency(total)}</td>
