@@ -25,6 +25,13 @@ if config.config_file_name is not None:
 # target_metadata = None
 from app.core.database import Base
 import app.models  # noqa: F401 — registra todas las tablas en Base.metadata
+from app.modules.liquidaciones.models import (  # noqa: F401 — registra tablas de liquidaciones en Base.metadata
+    factura,
+    salario_base,
+    salario_plus,
+    liquidacion,
+    materia_grupo_plus,
+)
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
