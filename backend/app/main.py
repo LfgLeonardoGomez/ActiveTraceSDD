@@ -6,11 +6,13 @@ IMPLEMENTADO en C-01: lifespan, middleware, logging, OTel, health router.
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import Settings
 from app.core.database import init_db
 from app.core.logging import init_logging
 from app.core.observability import init_observability
+from app.core.seed_admin import seed_admin
 from app.api.v1.routers.auth import router as auth_router
 from app.api.v1.routers.health import router as health_router
 from app.api.v1.routers.rbac import (
@@ -48,6 +50,9 @@ async def lifespan(app: FastAPI):
     init_db(settings.database_url)
     init_logging()
     init_observability(app)
+    from app.core.database import AsyncSessionLocal
+    async with AsyncSessionLocal() as db:
+        await seed_admin(db)
     yield
 
 
@@ -61,6 +66,16 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan,
 )
+
+# CORS para desarrollo local
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 _register_modules(app)
 
 app.include_router(health_router, tags=["health"])

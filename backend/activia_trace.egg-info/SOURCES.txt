@@ -12,9 +12,16 @@ tests/test_api_usuarios.py
 tests/test_app_startup.py
 tests/test_audit_helper.py
 tests/test_audit_log_repository.py
+tests/test_auditoria_panel.py
 tests/test_auth.py
 tests/test_auth_c07.py
 tests/test_avisos.py
+tests/test_c20_phase1.py
+tests/test_c20_phase2.py
+tests/test_c20_phase3.py
+tests/test_c20_phase4.py
+tests/test_c20_phase5.py
+tests/test_c20_phase6.py
 tests/test_carrera.py
 tests/test_cohorte.py
 tests/test_comunicaciones.py
@@ -25,6 +32,7 @@ tests/test_evaluaciones.py
 tests/test_health.py
 tests/test_impersonation.py
 tests/test_impersonation_context.py
+tests/test_inbox.py
 tests/test_materia.py
 tests/test_migracion_006.py
 tests/test_migration_001.py
@@ -41,6 +49,8 @@ tests/test_padron_cobertura_final.py
 tests/test_padron_repository.py
 tests/test_padron_service.py
 tests/test_padron_sync_worker.py
+tests/test_perfil.py
+tests/test_programas_y_fechas.py
 tests/test_rbac_models.py
 tests/test_rbac_repositories.py
 tests/test_rbac_routers.py
@@ -53,3 +63,7 @@ tests/test_schemas_c07.py
 tests/test_security.py
 tests/test_services_c07.py
 tests/test_tareas_models.py
+tests/test_tareas_repository.py
+tests/test_tareas_router.py
+tests/test_tareas_schemas.py
+tests/test_tareas_service.py

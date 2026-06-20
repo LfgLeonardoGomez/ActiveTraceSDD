@@ -24,6 +24,7 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # target_metadata = None
 from app.core.database import Base
+import app.models  # noqa: F401 — registra todas las tablas en Base.metadata
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
@@ -51,6 +52,8 @@ def do_run_migrations(connection):
     context.configure(connection=connection, target_metadata=target_metadata)
     with context.begin_transaction():
         context.run_migrations()
+    # Commit explícito para asegurar que las operaciones DDL persisten
+    connection.commit()
 
 
 async def run_migrations_online() -> None:
@@ -63,6 +66,15 @@ async def run_migrations_online() -> None:
     )
 
     async with connectable.connect() as connection:
+        # Ensure version table column width supports long revision IDs (>32 chars)
+        def _ensure_version_table(conn):
+            from sqlalchemy import inspect, text
+            if not inspect(conn).has_table("alembic_version"):
+                conn.execute(text(
+                    "CREATE TABLE alembic_version (version_num VARCHAR(255) NOT NULL, PRIMARY KEY (version_num))"
+                ))
+        await connection.run_sync(_ensure_version_table)
+
         await connection.run_sync(do_run_migrations)
 
     await connectable.dispose()

@@ -43,7 +43,8 @@ export function useLoginForm(): UseLoginFormReturn {
     };
   }, []);
 
-  const onSubmit = useCallback(async () => {
+  const onSubmit = useCallback(async (e?: React.BaseSyntheticEvent) => {
+    e?.preventDefault();
     const values = form.getValues();
     setIsSubmitting(true);
     setError(null);

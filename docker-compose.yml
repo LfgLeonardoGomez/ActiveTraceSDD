@@ -1,11 +1,11 @@
-version: "3.8"
-
 services:
   api:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: activia-trace-api
+    command: >
+      sh -c "python -m alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
     ports:
       - "8000:8000"
     env_file:
@@ -31,7 +31,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5433:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U trace_user -d activia_trace"]
       interval: 10s

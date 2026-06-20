@@ -5,6 +5,7 @@ Todos los endpoints de autenticacion bajo /api/auth.
 
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
+import uuid
 from uuid import UUID
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
@@ -16,8 +17,10 @@ from app.core import security
 from app.core.encryption import decrypt_pii, hash_email_for_lookup
 from app.core.config import Settings
 from app.core.dependencies import CurrentUser, get_current_active_user, get_db, require_permission
+from app.models.asignacion import Asignacion
 from app.models.password_reset_token import PasswordResetToken
 from app.models.refresh_token import RefreshToken
+from app.models.role import Permiso, Rol, RolPermiso
 from app.models.user import Usuario
 from app.repositories.password_reset_token_repository import PasswordResetTokenRepository
 from app.repositories.rate_limit_repository import RateLimitRepository
@@ -33,6 +36,7 @@ from app.schemas.auth import (
     MeResponse,
     PreAuthResponse,
     ResetRequest,
+    RoleResponse,
     TokenResponse,
     TwoFactorConfirmRequest,
     TwoFactorDisableRequest,
@@ -157,12 +161,27 @@ async def login(
         pre_auth = security.create_pre_auth_token(user.id, user.tenant_id)
         return PreAuthResponse(pre_auth_token=pre_auth)
 
+    # Buscar roles activos del usuario desde asignaciones
+    from datetime import date
+    from app.models.asignacion import Asignacion
+    roles_result = await db.execute(
+        select(Asignacion.rol).where(
+            Asignacion.usuario_id == user.id,
+            Asignacion.tenant_id == user.tenant_id,
+            Asignacion.deleted_at.is_(None),
+            Asignacion.desde <= date.today(),
+            (Asignacion.hasta.is_(None) | (Asignacion.hasta >= date.today()))
+        ).distinct()
+    )
+    user_roles = [r[0] for r in roles_result.all()]
+
     refresh_repo = RefreshTokenRepository(db, user.tenant_id)
     token_service = TokenService(refresh_repo)
     access_token, raw_refresh = await token_service.issue_token_pair(
         user=user,
         ip_address=ip,
         user_agent=_get_user_agent(request),
+        roles=user_roles,
     )
     _set_refresh_cookie(response, raw_refresh)
     return TokenResponse(access_token=access_token)
@@ -454,12 +473,26 @@ async def verify_2fa(
             detail="Invalid 2FA code",
         )
 
+    # Buscar roles activos del usuario para incluirlos en el JWT
+    from datetime import date
+    roles_result = await db.execute(
+        select(Asignacion.rol).where(
+            Asignacion.usuario_id == user.id,
+            Asignacion.tenant_id == user.tenant_id,
+            Asignacion.deleted_at.is_(None),
+            Asignacion.desde <= date.today(),
+            (Asignacion.hasta.is_(None) | (Asignacion.hasta >= date.today()))
+        ).distinct()
+    )
+    user_roles = [r[0] for r in roles_result.all()]
+
     refresh_repo = RefreshTokenRepository(db, tenant_id)
     token_service = TokenService(refresh_repo)
     access_token, raw_refresh = await token_service.issue_token_pair(
         user=user,
         ip_address=ip,
         user_agent=_get_user_agent(request),
+        roles=user_roles,
     )
     _set_refresh_cookie(response, raw_refresh)
     return TokenResponse(access_token=access_token)
@@ -497,13 +530,82 @@ async def disable_2fa(
 @router.get("/me", response_model=MeResponse)
 async def me(
     current_user: Annotated[CurrentUser, Depends(get_current_active_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
 ) -> MeResponse:
-    """Retorna los datos del usuario autenticado actual."""
+    """Retorna los datos del usuario autenticado actual.
+
+    Resuelve roles activos con sus permisos desde la base de datos para
+    mantener sincronización con la matriz RBAC del tenant.
+    """
+    from datetime import date
+
+    # Obtener nombre y apellidos del usuario desde la DB
+    result = await db.execute(
+        select(Usuario).where(
+            Usuario.id == current_user.id,
+            Usuario.tenant_id == current_user.tenant_id,
+            Usuario.deleted_at.is_(None),
+        )
+    )
+    user = result.scalar_one_or_none()
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    # Buscar roles activos del usuario desde asignaciones
+    roles_result = await db.execute(
+        select(Asignacion.rol).where(
+            Asignacion.usuario_id == current_user.id,
+            Asignacion.tenant_id == current_user.tenant_id,
+            Asignacion.deleted_at.is_(None),
+            Asignacion.desde <= date.today(),
+            (Asignacion.hasta.is_(None) | (Asignacion.hasta >= date.today()))
+        ).distinct()
+    )
+    active_role_names = {r[0] for r in roles_result.all()}
+
+    # Fallback: si no hay asignaciones vigentes pero el JWT tiene roles,
+    # usar los del JWT (puede ocurrir tras migración o data inconsistency)
+    if not active_role_names and current_user.roles:
+        active_role_names = set(current_user.roles)
+
+    # Resolver permisos para cada rol activo
+    role_responses: list[RoleResponse] = []
+    for role_name in sorted(active_role_names):
+        perm_result = await db.execute(
+            select(Permiso.codigo)
+            .join(RolPermiso, Permiso.id == RolPermiso.permiso_id)
+            .join(Rol, Rol.id == RolPermiso.rol_id)
+            .where(
+                Rol.tenant_id == current_user.tenant_id,
+                Rol.codigo == role_name,
+                Rol.deleted_at.is_(None),
+                Permiso.deleted_at.is_(None),
+                RolPermiso.deleted_at.is_(None),
+            )
+            .distinct()
+        )
+        permissions = [p[0] for p in perm_result.all()]
+
+        # UUID determinística estable por nombre de rol
+        role_id = str(uuid.uuid5(uuid.NAMESPACE_OID, role_name))
+        role_responses.append(
+            RoleResponse(
+                id=role_id,
+                name=role_name,
+                permissions=permissions,
+            )
+        )
+
     return MeResponse(
         id=current_user.id,
         tenant_id=current_user.tenant_id,
         email=current_user.email,
-        roles=current_user.roles,
+        nombre=user.nombre,
+        apellido=user.apellidos,
+        roles=role_responses,
         is_impersonating=current_user.is_impersonating,
         actor_id=current_user.actor_id,
         impersonated_id=current_user.impersonated_id,

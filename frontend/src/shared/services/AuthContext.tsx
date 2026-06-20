@@ -106,7 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // No 2FA required
       setAccessToken(response.data.access_token);
       setIsAuthenticated(true);
-      queryClient.invalidateQueries({ queryKey: ['me'] });
+      await refetchMe();
       return { needs2FA: false, accessToken: response.data.access_token };
     }
 
@@ -128,7 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setAccessToken(response.data.access_token);
     setIsAuthenticated(true);
-    queryClient.invalidateQueries({ queryKey: ['me'] });
+    await refetchMe();
   }, [queryClient]);
 
   // ── logout ──

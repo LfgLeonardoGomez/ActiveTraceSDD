@@ -101,6 +101,16 @@ class ImpersonateRequest(BaseModel):
     target_user_id: UUID
 
 
+class RoleResponse(BaseModel):
+    """Rol con sus permisos para el frontend."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    name: str
+    permissions: list[str]
+
+
 class MeResponse(BaseModel):
     """Respuesta del endpoint /me con datos del usuario autenticado."""
 
@@ -109,7 +119,9 @@ class MeResponse(BaseModel):
     id: UUID
     tenant_id: UUID
     email: str
-    roles: list[str]
+    nombre: str
+    apellido: str
+    roles: list[RoleResponse]
     is_impersonating: bool
     actor_id: UUID | None = None
     impersonated_id: UUID | None = None
