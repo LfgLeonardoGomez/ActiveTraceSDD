@@ -33,11 +33,13 @@ function mapEvaluacionApiToConvocatoria(item: EvaluacionApiItem): Convocatoria {
     id: item.id,
     materia: item.materia_id,
     materia_id: item.materia_id,
-    instancia: parseInt(item.instancia, 10) || 1,
+    // instancia is a free-text string from the API ("Primer Coloquio 2026"), not a number.
+    instancia: item.instancia,
     titulo: item.instancia,
     cohorte: item.cohorte_id,
     cohorte_id: item.cohorte_id,
     dias: [],
+    dias_disponibles: item.dias_disponibles,
     estado: 'activa',
     total_convocados: item.convocados,
     reservas_activas: item.reservas_activas,
@@ -73,8 +75,12 @@ export async function crearConvocatoria(payload: Partial<Convocatoria>): Promise
 }
 
 export async function getConvocatoriaDetail(id: string): Promise<Convocatoria> {
-  const { data } = await api.get<EvaluacionApiItem>(`/api/coloquios/${id}`);
-  return mapEvaluacionApiToConvocatoria(data);
+  // GET /api/coloquios/{id} is not available (only PATCH exists on that path).
+  // Fetch the full list and return the matching item.
+  const { data } = await api.get<EvaluacionApiItem[] | Paginated<EvaluacionApiItem>>('/api/coloquios/');
+  const item = toList(data).find((c) => c.id === id);
+  if (!item) throw new Error(`Convocatoria ${id} not found`);
+  return mapEvaluacionApiToConvocatoria(item);
 }
 
 export async function importarAlumnos(formData: FormData): Promise<ImportResult> {

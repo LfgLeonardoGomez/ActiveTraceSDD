@@ -14,11 +14,14 @@ export interface Convocatoria {
   id: string;
   materia: string;
   materia_id: string;
-  instancia: number;
+  /** Free-text instance label returned by the API (e.g. "Primer Coloquio 2026"). */
+  instancia: string;
   titulo: string;
   cohorte: string;
   cohorte_id: string;
   dias: ConvocatoriaDia[];
+  /** Total number of available days as reported by the API (dias_disponibles). */
+  dias_disponibles: number;
   estado: string;
   total_convocados: number;
   reservas_activas: number;

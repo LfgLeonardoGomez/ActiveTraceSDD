@@ -10,7 +10,7 @@ interface AtrasadosTableProps {
   onCommunicate: () => void;
 }
 
-type SortableKey = 'nombre' | 'email' | 'actividades_faltantes' | 'nota_promedio' | 'estado';
+type SortableKey = 'alumno_nombre' | 'alumno_email' | 'actividades_faltantes_count' | 'actividades_reprobadas_count' | 'motivo';
 
 export function AtrasadosTable({
   materiaId,
@@ -48,14 +48,14 @@ export function AtrasadosTable({
       return 0;
     });
     if (!search) return sorted;
-    return sorted.filter((s) => s.nombre.toLowerCase().includes(search.toLowerCase()));
+    return sorted.filter((s) => s.alumno_nombre.toLowerCase().includes(search.toLowerCase()));
   }, [data, sortKey, sortDir, search]);
 
   const toggleAll = useCallback(() => {
     if (selectedIds.length === filtered.length) {
       onSelectionChange([]);
     } else {
-      onSelectionChange(filtered.map((s) => s.alumno_id));
+      onSelectionChange(filtered.map((s) => s.entrada_padron_id));
     }
   }, [filtered, selectedIds.length, onSelectionChange]);
 
@@ -159,46 +159,36 @@ export function AtrasadosTable({
                   className="rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
                 />
               </th>
-              <Th column="nombre">Alumno</Th>
-              <Th column="email">Email</Th>
-              <Th column="actividades_faltantes">Act. faltantes</Th>
-              <Th column="nota_promedio">Nota promedio</Th>
-              <Th column="estado">Estado</Th>
+              <Th column="alumno_nombre">Alumno</Th>
+              <Th column="alumno_email">Email</Th>
+              <Th column="actividades_faltantes_count">Act. faltantes</Th>
+              <Th column="actividades_reprobadas_count">Act. reprobadas</Th>
+              <Th column="motivo">Motivo</Th>
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-200">
             {filtered.map((alumno) => (
               <tr
-                key={alumno.alumno_id}
+                key={alumno.entrada_padron_id}
                 className={`hover:bg-neutral-50 ${
-                  selectedIds.includes(alumno.alumno_id) ? 'bg-primary-50' : ''
+                  selectedIds.includes(alumno.entrada_padron_id) ? 'bg-primary-50' : ''
                 }`}
               >
                 <td className="px-3 py-2">
                   <input
                     type="checkbox"
-                    checked={selectedIds.includes(alumno.alumno_id)}
-                    onChange={() => toggleOne(alumno.alumno_id)}
+                    checked={selectedIds.includes(alumno.entrada_padron_id)}
+                    onChange={() => toggleOne(alumno.entrada_padron_id)}
                     className="rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
                   />
                 </td>
-                <td className="px-3 py-2 font-medium text-neutral-900">{alumno.nombre}</td>
-                <td className="px-3 py-2 text-neutral-600">{alumno.email}</td>
-                <td className="px-3 py-2">{alumno.actividades_faltantes}</td>
+                <td className="px-3 py-2 font-medium text-neutral-900">{alumno.alumno_nombre}</td>
+                <td className="px-3 py-2 text-neutral-600">{alumno.alumno_email}</td>
+                <td className="px-3 py-2">{alumno.actividades_faltantes_count}</td>
+                <td className="px-3 py-2">{alumno.actividades_reprobadas_count}</td>
                 <td className="px-3 py-2">
-                  {alumno.nota_promedio != null ? alumno.nota_promedio.toFixed(2) : '—'}
-                </td>
-                <td className="px-3 py-2">
-                  <span
-                    className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                      alumno.estado === 'promociona'
-                        ? 'bg-success-50 text-success-700'
-                        : alumno.estado === 'libre'
-                          ? 'bg-danger-50 text-danger-700'
-                          : 'bg-warning-50 text-warning-700'
-                    }`}
-                  >
-                    {alumno.estado}
+                  <span className="inline-flex rounded-full px-2 py-0.5 text-xs font-medium bg-warning-50 text-warning-700">
+                    {alumno.motivo}
                   </span>
                 </td>
               </tr>

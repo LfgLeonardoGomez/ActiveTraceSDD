@@ -124,7 +124,7 @@ export function ConvocatoriaTable({ filters: externalFilters }: ConvocatoriaTabl
               >
                 <td className="px-4 py-3 font-medium text-neutral-900">{c.materia}</td>
                 <td className="px-4 py-3 text-neutral-700">{c.instancia}</td>
-                <td className="px-4 py-3 text-neutral-700">{c.dias?.length ?? 0}</td>
+                <td className="px-4 py-3 text-neutral-700">{c.dias_disponibles}</td>
                 <td className="px-4 py-3 text-neutral-700">{c.total_convocados}</td>
                 <td className="px-4 py-3 text-neutral-700">{c.reservas_activas}</td>
                 <td className="px-4 py-3 text-neutral-700">{c.cupos_libres}</td>

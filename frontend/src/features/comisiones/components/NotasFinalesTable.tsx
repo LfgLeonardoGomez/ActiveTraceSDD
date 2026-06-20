@@ -84,33 +84,13 @@ export function NotasFinalesTable({ materiaId }: NotasFinalesTableProps) {
           </thead>
           <tbody className="divide-y divide-neutral-200">
             {data.map((entry) => (
-              <tr key={entry.alumno_id} className="hover:bg-neutral-50">
-                <td className="px-3 py-2 font-medium text-neutral-900">{entry.nombre}</td>
-                <td className="px-3 py-2 text-neutral-600">{entry.email}</td>
+              <tr key={entry.entrada_padron_id} className="hover:bg-neutral-50">
+                <td className="px-3 py-2 font-medium text-neutral-900">{entry.alumno_nombre}</td>
+                <td className="px-3 py-2 text-neutral-600">{entry.alumno_email}</td>
                 <td className="px-3 py-2">
                   {entry.nota_final != null ? entry.nota_final.toFixed(2) : '—'}
                 </td>
-                <td className="px-3 py-2">
-                  <span
-                    className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                      entry.estado === 'aprobado' || entry.estado === 'promociona'
-                        ? 'bg-success-50 text-success-700'
-                        : entry.estado === 'libre'
-                          ? 'bg-danger-50 text-danger-700'
-                          : 'bg-warning-50 text-warning-700'
-                    }`}
-                  >
-                    {entry.estado === 'aprobado'
-                      ? 'Aprobado'
-                      : entry.estado === 'promociona'
-                        ? 'Promociona'
-                        : entry.estado === 'libre'
-                          ? 'Libre'
-                          : entry.estado === 'desaprobado'
-                            ? 'Desaprobado'
-                            : 'Pendiente'}
-                  </span>
-                </td>
+                <td className="px-3 py-2">—</td>
               </tr>
             ))}
           </tbody>

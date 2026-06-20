@@ -13,12 +13,16 @@ interface MonitorTableProps {
   esCoordinador?: boolean;
 }
 
-function estadoGeneral(actividades: MonitorEntry['estado_actividades']): { label: string; className: string } {
-  if (actividades.length === 0) return { label: 'Sin datos', className: 'bg-neutral-100 text-neutral-600' };
-  const aprobadas = actividades.filter((a) => a.aprobada).length;
-  if (aprobadas === actividades.length) return { label: 'Al día', className: 'bg-success-50 text-success-700' };
-  if (aprobadas === 0) return { label: 'Crítico', className: 'bg-danger-50 text-danger-700' };
-  return { label: 'En riesgo', className: 'bg-warning-50 text-warning-700' };
+function estadoClass(estado: string): string {
+  if (estado === 'al_dia') return 'bg-success-50 text-success-700';
+  if (estado === 'atrasado') return 'bg-danger-50 text-danger-700';
+  return 'bg-warning-50 text-warning-700';
+}
+
+function estadoLabel(estado: string): string {
+  if (estado === 'al_dia') return 'Al día';
+  if (estado === 'atrasado') return 'Atrasado';
+  return estado;
 }
 
 export function MonitorTable({
@@ -68,11 +72,6 @@ export function MonitorTable({
   const from = (page - 1) * 50 + 1;
   const to = Math.min(page * 50, total);
 
-  const ultimaActividad = (actividades: MonitorEntry['estado_actividades']): string => {
-    if (actividades.length === 0) return '—';
-    return actividades[actividades.length - 1].nombre;
-  };
-
   return (
     <div className="space-y-4">
       <div className="overflow-x-auto rounded-md border border-neutral-200">
@@ -86,50 +85,36 @@ export function MonitorTable({
                 Email
               </th>
               <th className="px-3 py-2 text-left text-xs font-medium uppercase text-neutral-500">
-                Comisión
+                Materia
               </th>
               <th className="px-3 py-2 text-left text-xs font-medium uppercase text-neutral-500">
-                Regional
+                Act. aprobadas
               </th>
               <th className="px-3 py-2 text-left text-xs font-medium uppercase text-neutral-500">
-                Actividad
+                Total act.
               </th>
               <th className="px-3 py-2 text-left text-xs font-medium uppercase text-neutral-500">
                 Estado
               </th>
-              <th className="px-3 py-2 text-left text-xs font-medium uppercase text-neutral-500">
-                Última actividad
-              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-200">
-            {data.map((entry) => {
-              const estado = estadoGeneral(entry.estado_actividades);
-              return (
-                <tr key={entry.alumno_id} className="hover:bg-neutral-50">
-                  <td className="px-3 py-2 font-medium text-neutral-900">{entry.nombre}</td>
-                  <td className="px-3 py-2 text-neutral-600">{entry.email}</td>
-                  <td className="px-3 py-2">{entry.comision}</td>
-                  <td className="px-3 py-2">{entry.regional}</td>
-                  <td className="px-3 py-2">
-                    <span className="text-xs text-neutral-600">
-                      {entry.estado_actividades.length} actividad
-                      {entry.estado_actividades.length !== 1 ? 'es' : ''}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${estado.className}`}
-                    >
-                      {estado.label}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2 text-xs text-neutral-600">
-                    {ultimaActividad(entry.estado_actividades)}
-                  </td>
-                </tr>
-              );
-            })}
+            {data.map((entry) => (
+              <tr key={entry.entrada_padron_id} className="hover:bg-neutral-50">
+                <td className="px-3 py-2 font-medium text-neutral-900">{entry.alumno_nombre}</td>
+                <td className="px-3 py-2 text-neutral-600">{entry.email}</td>
+                <td className="px-3 py-2">{entry.materia_nombre}</td>
+                <td className="px-3 py-2">{entry.actividades_aprobadas}</td>
+                <td className="px-3 py-2">{entry.actividades_totales}</td>
+                <td className="px-3 py-2">
+                  <span
+                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${estadoClass(entry.estado)}`}
+                  >
+                    {estadoLabel(entry.estado)}
+                  </span>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

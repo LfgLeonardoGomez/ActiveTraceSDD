@@ -89,14 +89,22 @@ export function ConvocatoriaDetail() {
 
           <div className="mt-4">
             <p className="mb-2 text-sm font-medium text-neutral-700">Días disponibles</p>
-            <div className="space-y-2">
-              {convocatoria.dias?.map((d, i) => (
-                <div key={i} className="flex items-center justify-between rounded-md bg-neutral-50 px-3 py-2 text-sm">
-                  <span className="text-neutral-900">{d.fecha}</span>
-                  <span className="text-neutral-500">Cupo: {d.cupo_maximo}</span>
-                </div>
-              ))}
-            </div>
+            {convocatoria.dias.length > 0 ? (
+              <div className="space-y-2">
+                {convocatoria.dias.map((d, i) => (
+                  <div key={i} className="flex items-center justify-between rounded-md bg-neutral-50 px-3 py-2 text-sm">
+                    <span className="text-neutral-900">{d.fecha}</span>
+                    <span className="text-neutral-500">Cupo: {d.cupo_maximo}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-neutral-600">
+                {convocatoria.dias_disponibles > 0
+                  ? `${convocatoria.dias_disponibles} día(s) disponibles`
+                  : '—'}
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>

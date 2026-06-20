@@ -38,7 +38,7 @@ export function ReportesSummary({ materiaId }: ReportesSummaryProps) {
     );
   }
 
-  if (!data || (data.total_alumnos === 0 && data.aprobados === 0)) {
+  if (!data || (data.total_alumnos === 0 && data.con_aprobadas === 0)) {
     return (
       <Card>
         <CardContent className="p-6 text-center">
@@ -50,10 +50,7 @@ export function ReportesSummary({ materiaId }: ReportesSummaryProps) {
     );
   }
 
-  const pct =
-    data.total_alumnos > 0
-      ? Math.round((data.aprobados / data.total_alumnos) * 100)
-      : 0;
+  const pct = Math.round(data.pct_aprobacion);
 
   const pctColor =
     pct >= 70 ? 'text-success-600' : pct >= 40 ? 'text-warning-600' : 'text-danger-600';
@@ -75,7 +72,7 @@ export function ReportesSummary({ materiaId }: ReportesSummaryProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold text-success-600">{data.aprobados}</p>
+          <p className="text-3xl font-bold text-success-600">{data.con_aprobadas}</p>
         </CardContent>
       </Card>
       <Card>
@@ -83,10 +80,10 @@ export function ReportesSummary({ materiaId }: ReportesSummaryProps) {
           <CardTitle className="text-sm font-medium text-neutral-600">Atrasados</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className={`text-3xl font-bold ${data.pendientes > 0 ? 'text-warning-600' : ''}`}>
-            {data.pendientes}
+          <p className={`text-3xl font-bold ${data.atrasados > 0 ? 'text-warning-600' : ''}`}>
+            {data.atrasados}
           </p>
-          {data.pendientes > 0 && <AlertTriangle className="mt-1 h-4 w-4 text-warning-500" />}
+          {data.atrasados > 0 && <AlertTriangle className="mt-1 h-4 w-4 text-warning-500" />}
         </CardContent>
       </Card>
       <Card>

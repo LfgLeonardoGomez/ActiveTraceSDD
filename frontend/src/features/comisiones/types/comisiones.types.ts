@@ -50,36 +50,35 @@ export interface Umbral {
 
 // ── Analytics ──
 export interface Atrasado {
-  alumno_id: string;
-  nombre: string;
-  email: string;
-  actividades_faltantes: number;
-  nota_promedio: number | null;
-  estado: string;
+  entrada_padron_id: string;
+  alumno_nombre: string;
+  alumno_email: string;
+  motivo: string;
+  actividades_faltantes_count: number;
+  actividades_reprobadas_count: number;
 }
 
 export interface RankingEntry {
-  alumno_id: string;
-  nombre: string;
-  email: string;
+  posicion: number;
+  entrada_padron_id: string;
+  alumno_nombre: string;
   actividades_aprobadas: number;
-  total_actividades: number;
 }
 
 export interface ReporteRapido {
   total_alumnos: number;
-  aprobados: number;
-  pendientes: number;
-  promocionan: number;
-  libres: number;
+  total_actividades: number;
+  con_aprobadas: number;
+  atrasados: number;
+  pct_aprobacion: number;
+  sin_datos: boolean;
 }
 
 export interface NotaFinal {
-  alumno_id: string;
-  nombre: string;
-  email: string;
+  entrada_padron_id: string;
+  alumno_nombre: string;
+  alumno_email: string;
   nota_final: number | null;
-  estado: string;
 }
 
 export interface TpsSinCorregirEntry {
@@ -102,25 +101,21 @@ export interface MonitorFilters {
 }
 
 export interface MonitorEntry {
-  alumno_id: string;
-  nombre: string;
+  entrada_padron_id: string;
+  alumno_nombre: string;
   email: string;
-  materia: string;
-  comision: string;
-  regional: string;
-  estado_actividades: {
-    actividad_id: string;
-    nombre: string;
-    aprobada: boolean;
-    nota: number | null;
-  }[];
+  materia_id: string;
+  materia_nombre: string;
+  actividades_aprobadas: number;
+  actividades_totales: number;
+  estado: string;
 }
 
 export interface MonitorPaginatedResponse {
-  data: MonitorEntry[];
+  items: MonitorEntry[];
   total: number;
   page: number;
-  total_pages: number;
+  pages: number;
 }
 
 // ── Communications ──

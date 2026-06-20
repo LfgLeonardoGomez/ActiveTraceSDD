@@ -39,10 +39,10 @@ export function MonitorTab() {
         showDateRange={esCoordinador}
       />
       <MonitorTable
-        data={data?.data ?? []}
+        data={data?.items ?? []}
         total={data?.total ?? 0}
         page={data?.page ?? 1}
-        totalPages={data?.total_pages ?? 1}
+        totalPages={data?.pages ?? 1}
         isLoading={isLoading}
         isError={isError}
         onRefetch={refetch}

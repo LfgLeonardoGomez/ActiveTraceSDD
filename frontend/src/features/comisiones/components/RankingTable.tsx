@@ -97,42 +97,22 @@ export function RankingTable({ materiaId }: RankingTableProps) {
           </tr>
         </thead>
         <tbody className="divide-y divide-neutral-200">
-          {data.map((entry, index) => {
-            const pos = index + 1;
-            const pct =
-              entry.total_actividades > 0
-                ? Math.round((entry.actividades_aprobadas / entry.total_actividades) * 100)
-                : 0;
+          {data.map((entry) => {
+            const pos = entry.posicion;
 
             return (
-              <tr key={entry.alumno_id} className={`${getRowClass(pos)} hover:bg-neutral-100`}>
+              <tr key={entry.entrada_padron_id} className={`${getRowClass(pos)} hover:bg-neutral-100`}>
                 <td className="px-3 py-2">
                   <div className="flex items-center gap-1.5">
                     {getPositionIcon(pos)}
                     <span className="font-medium text-neutral-700">{pos}</span>
                   </div>
                 </td>
-                <td className="px-3 py-2 font-medium text-neutral-900">{entry.nombre}</td>
-                <td className="px-3 py-2 text-neutral-600">{entry.email}</td>
+                <td className="px-3 py-2 font-medium text-neutral-900">{entry.alumno_nombre}</td>
+                <td className="px-3 py-2 text-neutral-600">—</td>
                 <td className="px-3 py-2">{entry.actividades_aprobadas}</td>
-                <td className="px-3 py-2">{entry.total_actividades}</td>
-                <td className="px-3 py-2">
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 w-16 overflow-hidden rounded-full bg-neutral-200">
-                      <div
-                        className={`h-full rounded-full ${
-                          pct >= 70
-                            ? 'bg-success-500'
-                            : pct >= 40
-                              ? 'bg-warning-500'
-                              : 'bg-danger-500'
-                        }`}
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                    <span className="text-xs text-neutral-600">{pct}%</span>
-                  </div>
-                </td>
+                <td className="px-3 py-2">—</td>
+                <td className="px-3 py-2">—</td>
               </tr>
             );
           })}

@@ -37,6 +37,8 @@ interface GuardiaApiItem {
 }
 
 function mapInstanciaApiToEncuentro(item: InstanciaApiItem): Encuentro {
+  // The API returns estado in PascalCase (e.g. "Programado"); normalise to lowercase.
+  const estado = item.estado.toLowerCase() as Encuentro['estado'];
   return {
     id: item.id,
     materia: item.materia_id,
@@ -48,7 +50,7 @@ function mapInstanciaApiToEncuentro(item: InstanciaApiItem): Encuentro {
     fecha: item.fecha,
     hora: item.hora,
     titulo: item.titulo ?? undefined,
-    estado: item.estado as Encuentro['estado'],
+    estado,
     enlace: item.meet_url,
     grabacion: item.video_url,
     comentario_interno: item.comentario,
