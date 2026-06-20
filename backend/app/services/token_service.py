@@ -92,12 +92,14 @@ class TokenService:
         # Marcar como usado
         await self.refresh_token_repo.mark_used(refresh_hash)
 
-        # Obtener usuario para emitir nuevo par (sin cargar relaciones de roles aún)
-        # Nota: en C-04 se resolverán roles reales; por ahora lista vacía.
-        # Para evitar importación circular, usamos el repositorio base o raw query.
-        # Aquí asumimos que el caller provee el usuario o lo buscamos vía session.
+        # Obtener usuario para emitir nuevo par.
+        from datetime import date
+
         from sqlalchemy import select
+
+        from app.models.asignacion import Asignacion
         from app.models.user import Usuario
+
         result = await self.refresh_token_repo.db_session.execute(
             select(Usuario).where(
                 Usuario.id == token.user_id,
@@ -109,10 +111,27 @@ class TokenService:
         if user is None:
             raise AuthenticationError("User not found")
 
+        # Resolver roles vigentes desde asignaciones para no emitir un token sin
+        # permisos: el access token rotado debe conservar los roles igual que el
+        # login, o require_permission rechazaría todo tras el primer refresh.
+        roles_result = await self.refresh_token_repo.db_session.execute(
+            select(Asignacion.rol)
+            .where(
+                Asignacion.usuario_id == user.id,
+                Asignacion.tenant_id == user.tenant_id,
+                Asignacion.deleted_at.is_(None),
+                Asignacion.desde <= date.today(),
+                (Asignacion.hasta.is_(None) | (Asignacion.hasta >= date.today())),
+            )
+            .distinct()
+        )
+        user_roles = [r[0] for r in roles_result.all()]
+
         return await self.issue_token_pair(
             user=user,
             ip_address=ip_address,
             user_agent=user_agent,
+            roles=user_roles,
         )
 
     async def revoke_refresh_token(self, raw_refresh: str) -> None:
