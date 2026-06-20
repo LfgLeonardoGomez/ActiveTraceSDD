@@ -10,7 +10,7 @@ export async function getMonitorGeneral(
   filters?: MonitorFilters,
   page = 1,
 ): Promise<PaginatedResponse<MonitorEntry>> {
-  const { data } = await api.get<PaginatedResponse<MonitorEntry>>('/api/v1/analisis/monitor/general', {
+  const { data } = await api.get<PaginatedResponse<MonitorEntry>>('/api/analisis/monitor/general', {
     params: { ...filters, page },
   });
   return data;
@@ -20,7 +20,7 @@ export async function getAuditoria(
   filters?: MonitorFilters,
   page = 1,
 ): Promise<PaginatedResponse<AuditoriaEntry>> {
-  const { data } = await api.get<PaginatedResponse<AuditoriaEntry>>('/api/v1/analisis/monitor/auditoria', {
+  const { data } = await api.get<PaginatedResponse<AuditoriaEntry>>('/api/auditoria/log', {
     params: { ...filters, page },
   });
   return data;

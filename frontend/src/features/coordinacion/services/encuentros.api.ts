@@ -3,12 +3,12 @@ import { toList, type Paginated } from '@/shared/services/pagination';
 import type { Encuentro, SerieRecurrenteRequest, Guardia } from '../types/encuentros.types';
 
 export async function getEncuentros(filters?: Record<string, string>): Promise<Encuentro[]> {
-  const { data } = await api.get<Encuentro[] | Paginated<Encuentro>>('/api/v1/encuentros', { params: filters });
+  const { data } = await api.get<Encuentro[] | Paginated<Encuentro>>('/api/v1/encuentros/instancias', { params: filters });
   return toList(data);
 }
 
 export async function crearEncuentro(payload: Partial<Encuentro>): Promise<Encuentro> {
-  const { data } = await api.post<Encuentro>('/api/v1/encuentros', payload);
+  const { data } = await api.post<Encuentro>('/api/v1/encuentros/instancias', payload);
   return data;
 }
 
@@ -23,21 +23,21 @@ export async function crearRecurrente(
 }
 
 export async function editarEncuentro(id: string, payload: Partial<Encuentro>): Promise<Encuentro> {
-  const { data } = await api.put<Encuentro>(`/api/v1/encuentros/${id}`, payload);
+  const { data } = await api.put<Encuentro>(`/api/v1/encuentros/instancias/${id}`, payload);
   return data;
 }
 
 export async function getContenidoAula(filters?: Record<string, string>): Promise<unknown> {
-  const { data } = await api.get('/api/v1/encuentros/contenido-aula', { params: filters });
+  const { data } = await api.get('/api/v1/encuentros/bloque-html', { params: filters });
   return data;
 }
 
 export async function getGuardias(filters?: Record<string, string>): Promise<Guardia[]> {
-  const { data } = await api.get<Guardia[] | Paginated<Guardia>>('/api/v1/encuentros/guardias', { params: filters });
+  const { data } = await api.get<Guardia[] | Paginated<Guardia>>('/api/v1/guardias', { params: filters });
   return toList(data);
 }
 
 export async function registrarGuardia(payload: Partial<Guardia>): Promise<Guardia> {
-  const { data } = await api.post<Guardia>('/api/v1/encuentros/guardias', payload);
+  const { data } = await api.post<Guardia>('/api/v1/guardias', payload);
   return data;
 }
