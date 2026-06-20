@@ -3,7 +3,6 @@ import {
   Users,
   BookOpen,
   LayoutGrid,
-  Mail,
   DollarSign,
   X,
   Calendar,
@@ -24,11 +23,7 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Alumnos', path: '/alumnos', icon: Users, permission: 'alumnos:read' },
-  { label: 'Materias', path: '/materias', icon: BookOpen, permission: 'materias:read' },
   { label: 'Comisiones', path: '/comisiones', icon: LayoutGrid, permission: 'comisiones:read' },
-  { label: 'Comunicación', path: '/comunicacion', icon: Mail, permission: 'comunicacion:read' },
-  { label: 'Liquidaciones', path: '/liquidaciones', icon: DollarSign, permission: 'liquidaciones:read' },
 ];
 
 const COORDINACION_ITEMS: NavItem[] = [

@@ -5,12 +5,12 @@ import { usePermissions } from '@/shared/hooks/usePermissions';
 import { Button } from '@/shared/components/ui/Button';
 
 const ROUTE_PRIORITY = [
-  { path: '/alumnos', permission: 'alumnos:read' },
-  { path: '/materias', permission: 'materias:read' },
   { path: '/comisiones', permission: 'comisiones:read' },
-  { path: '/comunicacion', permission: 'comunicacion:read' },
-  { path: '/equipos', permission: 'equipos:read' },
-  { path: '/liquidaciones', permission: 'liquidaciones:read' },
+  { path: '/coordinacion/equipos', permission: 'equipos:ver' },
+  { path: '/coordinacion/encuentros', permission: 'encuentros:ver' },
+  { path: '/finanzas/liquidaciones', permission: 'liquidaciones:ver' },
+  { path: '/admin/usuarios', permission: 'usuarios:gestionar' },
+  { path: '/admin/estructura', permission: 'estructura:gestionar' },
 ];
 
 export default function DashboardHome() {
