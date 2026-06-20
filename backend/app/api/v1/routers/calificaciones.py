@@ -17,6 +17,7 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Request, UploadFile, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import (
@@ -25,7 +26,9 @@ from app.core.dependencies import (
     get_db,
     require_permission,
 )
+from app.models.estructura import Materia
 from app.schemas.calificacion import (
+    ComisionItem,
     ImportConfirmRequest,
     ImportConfirmResponse,
     ImportPreviewResponse,
@@ -64,6 +67,43 @@ async def _read_file(file: UploadFile) -> bytes:
             detail=f"El archivo supera el límite de {_MAX_FILE_SIZE // (1024 * 1024)} MB",
         )
     return content
+
+
+@router.get(
+    "/comisiones",
+    response_model=list[ComisionItem],
+    summary="Listar comisiones disponibles para el usuario",
+)
+async def listar_comisiones(
+    _perm: Annotated[object, Depends(require_permission("comisiones:read"))],
+    current_user: Annotated[CurrentUser, Depends(get_current_active_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> list[ComisionItem]:
+    """List the tenant's active materias as commissions.
+
+    DEMO STUB: the domain has no Comisión entity yet (materia↔cohorte pairing
+    is open question PA-01), so one item is returned per active Materia with a
+    placeholder cohorte. Tenant scope comes exclusively from the verified JWT.
+    """
+    result = await db.execute(
+        select(Materia)
+        .where(
+            Materia.tenant_id == current_user.tenant_id,
+            Materia.deleted_at.is_(None),
+            Materia.estado == "Activa",
+        )
+        .order_by(Materia.nombre)
+    )
+    materias = result.scalars().all()
+    return [
+        ComisionItem(
+            id=str(materia.id),
+            materia_id=str(materia.id),
+            materia_nombre=materia.nombre,
+            cohorte_nombre="—",
+        )
+        for materia in materias
+    ]
 
 
 @router.post(

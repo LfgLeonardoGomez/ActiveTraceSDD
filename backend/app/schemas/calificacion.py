@@ -10,6 +10,22 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field
 
 
+class ComisionItem(BaseModel):
+    """Comisión disponible para el usuario (selector de Comisiones).
+
+    DEMO STUB: the domain has no Comisión entity yet (materia↔cohorte pairing,
+    open question PA-01). For now one item is emitted per active Materia, with
+    cohorte_nombre as a placeholder. Shape mirrors the frontend MateriaCohorte.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    materia_id: str
+    materia_nombre: str
+    cohorte_nombre: str
+
+
 class ActividadDetectada(BaseModel):
     """Actividad detectada en el archivo LMS durante el preview."""
 
