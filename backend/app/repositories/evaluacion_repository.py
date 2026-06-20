@@ -435,6 +435,7 @@ class EvaluacionRepository:
         reservas_activas = (
             await self.db_session.execute(
                 select(func.count())
+                .select_from(ReservaEvaluacion)
                 .join(Evaluacion, Evaluacion.id == ReservaEvaluacion.evaluacion_id)
                 .where(
                     Evaluacion.tenant_id == self.tenant_id,
@@ -447,6 +448,7 @@ class EvaluacionRepository:
         notas_registradas = (
             await self.db_session.execute(
                 select(func.count())
+                .select_from(ResultadoEvaluacion)
                 .join(Evaluacion, Evaluacion.id == ResultadoEvaluacion.evaluacion_id)
                 .where(
                     Evaluacion.tenant_id == self.tenant_id,
