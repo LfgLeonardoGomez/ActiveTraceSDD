@@ -89,8 +89,6 @@ export function getNotasFinalesExportUrl(materiaId: string): string {
 }
 
 export async function getTpsSinCorregir(materiaId: string): Promise<TpsSinCorregirEntry[]> {
-  // TODO: backend only exposes /api/analisis/tps-sin-corregir/export (no bare data endpoint);
-  // this call will 404 until a data endpoint is added.
   const { data } = await api.get<TpsSinCorregirEntry[] | Paginated<TpsSinCorregirEntry>>('/api/analisis/tps-sin-corregir', {
     params: { asignacion_id: materiaId },
   });
