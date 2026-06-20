@@ -57,47 +57,49 @@ export async function updateUmbral(materiaId: string, payload: Umbral): Promise<
 
 export async function getAtrasados(materiaId: string): Promise<Atrasado[]> {
   const { data } = await api.get<Atrasado[] | Paginated<Atrasado>>('/api/analisis/atrasados', {
-    params: { materia_id: materiaId },
+    params: { asignacion_id: materiaId },
   });
   return toList(data);
 }
 
 export async function getRanking(materiaId: string): Promise<RankingEntry[]> {
   const { data } = await api.get<RankingEntry[] | Paginated<RankingEntry>>('/api/analisis/ranking', {
-    params: { materia_id: materiaId },
+    params: { asignacion_id: materiaId },
   });
   return toList(data);
 }
 
 export async function getReporteRapido(materiaId: string): Promise<ReporteRapido> {
   const { data } = await api.get<ReporteRapido>('/api/analisis/reporte-rapido', {
-    params: { materia_id: materiaId },
+    params: { asignacion_id: materiaId },
   });
   return data;
 }
 
 export async function getNotasFinales(materiaId: string): Promise<NotaFinal[]> {
   const { data } = await api.get<NotaFinal[] | Paginated<NotaFinal>>('/api/analisis/notas-finales', {
-    params: { materia_id: materiaId },
+    params: { asignacion_id: materiaId },
   });
   return toList(data);
 }
 
 export function getNotasFinalesExportUrl(materiaId: string): string {
   const base = import.meta.env.VITE_API_BASE_URL ?? '';
-  return `${base}/api/analisis/notas-finales/export?materia_id=${materiaId}`;
+  return `${base}/api/analisis/notas-finales/export?asignacion_id=${materiaId}`;
 }
 
 export async function getTpsSinCorregir(materiaId: string): Promise<TpsSinCorregirEntry[]> {
+  // TODO: backend only exposes /api/analisis/tps-sin-corregir/export (no bare data endpoint);
+  // this call will 404 until a data endpoint is added.
   const { data } = await api.get<TpsSinCorregirEntry[] | Paginated<TpsSinCorregirEntry>>('/api/analisis/tps-sin-corregir', {
-    params: { materia_id: materiaId },
+    params: { asignacion_id: materiaId },
   });
   return toList(data);
 }
 
 export function getTpsSinCorregirExportUrl(materiaId: string): string {
   const base = import.meta.env.VITE_API_BASE_URL ?? '';
-  return `${base}/api/analisis/tps-sin-corregir/export?materia_id=${materiaId}`;
+  return `${base}/api/analisis/tps-sin-corregir/export?asignacion_id=${materiaId}`;
 }
 
 export async function getMonitor(
