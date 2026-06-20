@@ -33,6 +33,8 @@ from app.schemas.encuentros import (
     InstanciaUpdate,
     PaginatedInstanciaResponse,
     PaginatedSlotResponse,
+    SerieRecurrenteCreate,
+    SerieRecurrenteResponse,
     SlotCreate,
     SlotRead,
     SlotUpdate,
@@ -171,6 +173,64 @@ class EncuentroService:
         )
 
         return slot
+
+    async def crear_serie_recurrente(
+        self,
+        data: SerieRecurrenteCreate,
+        actor_id: UUID,
+    ) -> SerieRecurrenteResponse:
+        """Crea una serie de instancias recurrentes sin slot persistente.
+
+        La conversión de dia_semana sigue la convención del frontend:
+        1=Lunes … 5=Viernes (ISO). Python weekday() usa 0=Lunes.
+
+        Minimal implementation: genera `semanas` instancias a partir de
+        `fecha_inicio`, ajustando al `dia_semana` indicado, una por semana.
+        """
+        await self._verify_materia_en_tenant(data.materia_id)
+
+        # Frontend envía 1=Lunes…5=Viernes; _compute_fechas espera weekday 0=Lunes
+        python_weekday = data.dia_semana - 1
+        fechas = self._compute_fechas(data.fecha_inicio, python_weekday, data.semanas)
+
+        instancias = [
+            InstanciaEncuentro(
+                tenant_id=self.tenant_id,
+                slot_id=None,
+                materia_id=data.materia_id,
+                titulo=data.titulo,
+                fecha=fecha,
+                hora=data.horario,
+                estado="Programado",
+                meet_url=data.enlace,
+            )
+            for fecha in fechas
+        ]
+
+        self.db_session.add_all(instancias)
+        await self.db_session.flush()
+        await self.db_session.commit()
+
+        for inst in instancias:
+            await self.db_session.refresh(inst)
+
+        await self._insert_audit_log(
+            actor_id=actor_id,
+            accion="ENCUENTRO_CREAR",
+            detalle={
+                "tipo": "serie_recurrente",
+                "materia_id": str(data.materia_id),
+                "semanas": data.semanas,
+                "cant_instancias": len(instancias),
+            },
+            filas_afectadas=len(instancias),
+            materia_id=data.materia_id,
+        )
+
+        return SerieRecurrenteResponse(
+            instancias=[InstanciaRead.model_validate(i) for i in instancias],
+            count=len(instancias),
+        )
 
     async def crear_instancia_unica(
         self,

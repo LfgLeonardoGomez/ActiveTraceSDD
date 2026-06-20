@@ -147,6 +147,47 @@ async def get_metricas(
 
 
 # ---------------------------------------------------------------------------
+# GET /admin — Vista admin: todas las convocatorias del tenant
+# ---------------------------------------------------------------------------
+
+@router.get(
+    "/admin",
+    summary="Vista admin: lista todas las convocatorias del tenant",
+)
+async def list_convocatorias_admin(
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=_DEFAULT_PAGE_SIZE, ge=1),
+    _perm: Annotated[PermissionContext, Depends(require_permission("coloquios:ver"))] = None,
+    current_user: Annotated[CurrentUser, Depends(get_current_active_user)] = None,
+    db: Annotated[AsyncSession, Depends(get_db)] = None,
+) -> dict:
+    _validate_page_size(page_size)
+    service = _make_service(db, current_user)
+    return await service.list_convocatorias(page, page_size)
+
+
+# ---------------------------------------------------------------------------
+# GET /reservas-activas — Lista todas las reservas activas del tenant
+# ---------------------------------------------------------------------------
+
+@router.get(
+    "/reservas-activas",
+    response_model=ReservasListResponseSchema,
+    summary="Lista todas las reservas activas del tenant (vista admin)",
+)
+async def list_reservas_activas(
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=_DEFAULT_PAGE_SIZE, ge=1),
+    _perm: Annotated[PermissionContext, Depends(require_permission("coloquios:ver"))] = None,
+    current_user: Annotated[CurrentUser, Depends(get_current_active_user)] = None,
+    db: Annotated[AsyncSession, Depends(get_db)] = None,
+) -> ReservasListResponseSchema:
+    _validate_page_size(page_size)
+    service = _make_service(db, current_user)
+    return await service.list_reservas_activas_global(page, page_size)
+
+
+# ---------------------------------------------------------------------------
 # GET /agenda — Agenda consolidada (solo COORDINADOR/ADMIN)
 # ---------------------------------------------------------------------------
 

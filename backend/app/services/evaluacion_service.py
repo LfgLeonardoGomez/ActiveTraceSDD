@@ -321,6 +321,30 @@ class EvaluacionService:
             pages=self._paginas(total, page_size),
         )
 
+    async def list_reservas_activas_global(
+        self, page: int, page_size: int
+    ) -> ReservasListResponseSchema:
+        """Vista admin: todas las reservas activas del tenant."""
+        items_raw, total = await self._repo.list_reservas_activas_global(page, page_size)
+        items = [
+            ReservaResponseSchema(
+                id=r["id"],
+                evaluacion_id=r["evaluacion_id"],
+                alumno_id=r["alumno_id"],
+                alumno_nombre=r["alumno_nombre"],
+                fecha_hora=r["fecha_hora"],
+                estado=EstadoReserva(r["estado"]),
+                created_at=r["created_at"],
+            )
+            for r in items_raw
+        ]
+        return ReservasListResponseSchema(
+            items=items,
+            total=total,
+            page=page,
+            pages=self._paginas(total, page_size),
+        )
+
     # ------------------------------------------------------------------
     # 4.5 Métricas globales y agenda
     # ------------------------------------------------------------------

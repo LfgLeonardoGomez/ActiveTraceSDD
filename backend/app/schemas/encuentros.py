@@ -151,6 +151,36 @@ class PaginatedInstanciaResponse(BaseModel):
 
 
 # ------------------------------------------------------------------
+# Serie recurrente (creación sin slot explícito)
+# ------------------------------------------------------------------
+
+class SerieRecurrenteCreate(BaseModel):
+    """Schema de request para crear una serie de instancias recurrentes.
+
+    dia_semana: 1=Lunes … 5=Viernes (convención del frontend).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    materia_id: UUID
+    dia_semana: int = Field(..., ge=1, le=5)
+    horario: str = Field(..., pattern=r"^\d{2}:\d{2}$")
+    fecha_inicio: date
+    semanas: int = Field(..., ge=1, le=16)
+    titulo: str = Field(..., min_length=1)
+    enlace: str | None = Field(None, max_length=2048)
+
+
+class SerieRecurrenteResponse(BaseModel):
+    """Schema de respuesta para creación de serie recurrente."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    instancias: list[InstanciaRead]
+    count: int
+
+
+# ------------------------------------------------------------------
 # Bloque HTML / Markdown
 # ------------------------------------------------------------------
 

@@ -407,6 +407,54 @@ class EvaluacionRepository:
             for r in result.all()
         ]
 
+    async def list_reservas_activas_global(
+        self,
+        page: int,
+        page_size: int,
+    ) -> tuple[list[dict], int]:
+        """Lista todas las reservas activas del tenant (vista admin).
+
+        Returns:
+            (items, total) — items con shape de ReservaResponseSchema.
+        """
+        filters = [
+            ReservaEvaluacion.tenant_id == self.tenant_id,
+            ReservaEvaluacion.estado == EstadoReserva.ACTIVA,
+            ReservaEvaluacion.deleted_at.is_(None),
+        ]
+
+        count_q = select(func.count()).select_from(
+            select(ReservaEvaluacion).where(*filters).subquery()
+        )
+        total = (await self.db_session.execute(count_q)).scalar_one()
+
+        offset = (page - 1) * page_size
+        rows_q = (
+            select(
+                ReservaEvaluacion,
+                Usuario.nombre,
+                Usuario.apellidos,
+            )
+            .join(Usuario, Usuario.id == ReservaEvaluacion.alumno_id)
+            .where(*filters)
+            .order_by(ReservaEvaluacion.fecha_hora)
+            .offset(offset)
+            .limit(page_size)
+        )
+        result = await self.db_session.execute(rows_q)
+        items = []
+        for reserva, nombre, apellidos in result.all():
+            items.append({
+                "id": reserva.id,
+                "evaluacion_id": reserva.evaluacion_id,
+                "alumno_id": reserva.alumno_id,
+                "alumno_nombre": f"{nombre} {apellidos}",
+                "fecha_hora": reserva.fecha_hora,
+                "estado": reserva.estado,
+                "created_at": reserva.created_at,
+            })
+        return items, total
+
     # ------------------------------------------------------------------
     # 3.5 Métricas globales y agenda
     # ------------------------------------------------------------------

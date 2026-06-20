@@ -33,6 +33,8 @@ from app.schemas.encuentros import (
     InstanciaUpdate,
     PaginatedInstanciaResponse,
     PaginatedSlotResponse,
+    SerieRecurrenteCreate,
+    SerieRecurrenteResponse,
     SlotCreate,
     SlotRead,
     SlotUpdate,
@@ -145,6 +147,33 @@ async def eliminar_slot(
     """Soft-delete de slot y cascada a instancias."""
     service = EncuentroService(db, current_user.tenant_id)
     await service.eliminar_slot(slot_id=slot_id, actor_id=current_user.real_actor_id)
+
+
+# ------------------------------------------------------------------
+# Serie recurrente (sin slot explícito)
+# ------------------------------------------------------------------
+
+@router.post(
+    "/recurrente",
+    response_model=SerieRecurrenteResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Crear serie de instancias recurrentes sin slot persistente",
+)
+async def crear_serie_recurrente(
+    body: SerieRecurrenteCreate,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[CurrentUser, Depends(get_current_active_user)],
+    _perm: Annotated[PermissionContext, Depends(require_permission("encuentros:gestionar"))],
+) -> SerieRecurrenteResponse:
+    """Genera N instancias de encuentro (una por semana) a partir de fecha_inicio.
+
+    dia_semana: 1=Lunes … 5=Viernes (convención del frontend).
+    """
+    service = EncuentroService(db, current_user.tenant_id)
+    return await service.crear_serie_recurrente(
+        data=body,
+        actor_id=current_user.real_actor_id,
+    )
 
 
 # ------------------------------------------------------------------
