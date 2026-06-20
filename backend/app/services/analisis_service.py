@@ -210,10 +210,12 @@ class AnalisisService:
             await self._verificar_titularidad(asignacion_id)
 
         if not actividad_ids:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-                detail="Debes seleccionar al menos una actividad numérica.",
-            )
+            # Sin selección explícita: promediar TODAS las actividades numéricas
+            # de la comisión (nota final = promedio de todo lo calificado).
+            actividad_ids = await self._repo.get_actividades_numericas(asignacion_id)
+        if not actividad_ids:
+            # No hay ninguna actividad numérica todavía → nada que promediar.
+            return []
 
         rows = await self._repo.get_notas_finales(asignacion_id, actividad_ids)
 

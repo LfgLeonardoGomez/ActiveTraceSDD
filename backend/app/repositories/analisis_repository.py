@@ -384,6 +384,24 @@ class AnalisisRepository:
     # 3.5: Notas finales
     # ------------------------------------------------------------------
 
+    async def get_actividades_numericas(self, asignacion_id: UUID) -> list[str]:
+        """Nombres de actividades con al menos una nota numérica en la comisión."""
+        asig = await self._get_asignacion(asignacion_id)
+        if asig is None:
+            return []
+        result = await self.db_session.execute(
+            select(Calificacion.actividad)
+            .where(
+                Calificacion.tenant_id == self.tenant_id,
+                Calificacion.usuario_importador_id == asig.usuario_id,
+                Calificacion.materia_id == asig.materia_id,
+                Calificacion.deleted_at.is_(None),
+                Calificacion.nota_numerica.is_not(None),
+            )
+            .distinct()
+        )
+        return [row[0] for row in result.all()]
+
     async def get_notas_finales(
         self,
         asignacion_id: UUID,
