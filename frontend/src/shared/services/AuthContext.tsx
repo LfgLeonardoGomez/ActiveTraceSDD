@@ -99,7 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const response = await axios.post<{ access_token?: string; pre_auth_token?: string }>(
       `${baseURL()}/api/auth/login`,
       { email, password },
-      { headers: { 'Content-Type': 'application/json' } },
+      { headers: { 'Content-Type': 'application/json' }, withCredentials: true },
     );
 
     if (response.data.access_token) {
@@ -123,7 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const response = await axios.post<TwoFactorVerifyResponse>(
       `${baseURL()}/api/auth/2fa/verify`,
       { pre_auth_token: preAuthToken, code },
-      { headers: { 'Content-Type': 'application/json' } },
+      { headers: { 'Content-Type': 'application/json' }, withCredentials: true },
     );
 
     setAccessToken(response.data.access_token);
