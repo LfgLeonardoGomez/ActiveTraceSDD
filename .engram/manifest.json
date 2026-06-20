@@ -104,6 +104,22 @@
       "sessions": 0,
       "memories": 3,
       "prompts": 0
+    },
+    {
+      "id": "cc5aaed8",
+      "created_by": "zen",
+      "created_at": "2026-06-20T02:19:07Z",
+      "sessions": 2,
+      "memories": 16,
+      "prompts": 51
+    },
+    {
+      "id": "954b81a5",
+      "created_by": "zen",
+      "created_at": "2026-06-20T02:21:39Z",
+      "sessions": 0,
+      "memories": 0,
+      "prompts": 1
     }
   ]
 }
