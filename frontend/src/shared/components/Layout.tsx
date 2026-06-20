@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/shared/services/AuthContext';
 import api from '@/shared/services/api';
 import { Button } from '@/shared/components/ui/Button';
+import RouteErrorBoundary from './RouteErrorBoundary';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 
@@ -10,6 +11,7 @@ export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isStoppingImpersonation, setIsStoppingImpersonation] = useState(false);
   const { user } = useAuth();
+  const location = useLocation();
 
   const stopImpersonation = async () => {
     setIsStoppingImpersonation(true);
@@ -47,7 +49,9 @@ export default function Layout() {
         )}
 
         <main className="flex-1 overflow-y-auto bg-neutral-50 p-6">
-          <Outlet />
+          <RouteErrorBoundary resetKey={location.pathname}>
+            <Outlet />
+          </RouteErrorBoundary>
         </main>
       </div>
     </div>
