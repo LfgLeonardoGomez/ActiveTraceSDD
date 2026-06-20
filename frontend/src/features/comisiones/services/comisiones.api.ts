@@ -1,4 +1,5 @@
 import api from '@/shared/services/api';
+import { toList, type Paginated } from '@/shared/services/pagination';
 import type {
   MateriaCohorte,
   ImportPreviewResponse,
@@ -22,8 +23,8 @@ import type {
 } from '../types/comisiones.types';
 
 export async function getMisComisiones(): Promise<MateriaCohorte[]> {
-  const { data } = await api.get<MateriaCohorte[]>('/api/v1/calificaciones/comisiones');
-  return data;
+  const { data } = await api.get<MateriaCohorte[] | Paginated<MateriaCohorte>>('/api/v1/calificaciones/comisiones');
+  return toList(data);
 }
 
 export async function importPreview(formData: FormData): Promise<ImportPreviewResponse> {
@@ -55,17 +56,17 @@ export async function updateUmbral(materiaId: string, payload: Umbral): Promise<
 }
 
 export async function getAtrasados(materiaId: string): Promise<Atrasado[]> {
-  const { data } = await api.get<Atrasado[]>('/api/analisis/atrasados', {
+  const { data } = await api.get<Atrasado[] | Paginated<Atrasado>>('/api/analisis/atrasados', {
     params: { materia_id: materiaId },
   });
-  return data;
+  return toList(data);
 }
 
 export async function getRanking(materiaId: string): Promise<RankingEntry[]> {
-  const { data } = await api.get<RankingEntry[]>('/api/analisis/ranking', {
+  const { data } = await api.get<RankingEntry[] | Paginated<RankingEntry>>('/api/analisis/ranking', {
     params: { materia_id: materiaId },
   });
-  return data;
+  return toList(data);
 }
 
 export async function getReporteRapido(materiaId: string): Promise<ReporteRapido> {
@@ -76,10 +77,10 @@ export async function getReporteRapido(materiaId: string): Promise<ReporteRapido
 }
 
 export async function getNotasFinales(materiaId: string): Promise<NotaFinal[]> {
-  const { data } = await api.get<NotaFinal[]>('/api/analisis/notas-finales', {
+  const { data } = await api.get<NotaFinal[] | Paginated<NotaFinal>>('/api/analisis/notas-finales', {
     params: { materia_id: materiaId },
   });
-  return data;
+  return toList(data);
 }
 
 export function getNotasFinalesExportUrl(materiaId: string): string {
@@ -88,10 +89,10 @@ export function getNotasFinalesExportUrl(materiaId: string): string {
 }
 
 export async function getTpsSinCorregir(materiaId: string): Promise<TpsSinCorregirEntry[]> {
-  const { data } = await api.get<TpsSinCorregirEntry[]>('/api/analisis/tps-sin-corregir', {
+  const { data } = await api.get<TpsSinCorregirEntry[] | Paginated<TpsSinCorregirEntry>>('/api/analisis/tps-sin-corregir', {
     params: { materia_id: materiaId },
   });
-  return data;
+  return toList(data);
 }
 
 export function getTpsSinCorregirExportUrl(materiaId: string): string {

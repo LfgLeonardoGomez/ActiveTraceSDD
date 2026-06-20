@@ -1,4 +1,5 @@
 import api from '@/shared/services/api';
+import { toList, type Paginated } from '@/shared/services/pagination';
 import type {
   LiquidacionView,
   LiquidacionHistorialEntry,
@@ -24,6 +25,6 @@ export async function getHistorial(filters?: HistorialFilters): Promise<{
 }
 
 export async function getCohortes(): Promise<{ id: string; nombre: string }[]> {
-  const { data } = await api.get('/api/liquidaciones/cohortes');
-  return data;
+  const { data } = await api.get<{ id: string; nombre: string }[] | Paginated<{ id: string; nombre: string }>>('/api/liquidaciones/cohortes');
+  return toList(data);
 }

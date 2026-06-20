@@ -1,4 +1,5 @@
 import api from '@/shared/services/api';
+import { toList, type Paginated } from '@/shared/services/pagination';
 import type {
   Carrera,
   CarreraCreate,
@@ -10,8 +11,8 @@ import type {
 } from '../types/estructura.types';
 
 export async function getCarrerasAdmin(filters?: EstructuraFilters): Promise<Carrera[]> {
-  const { data } = await api.get<Carrera[]>('/api/admin/carreras', { params: filters });
-  return data;
+  const { data } = await api.get<Carrera[] | Paginated<Carrera>>('/api/admin/carreras', { params: filters });
+  return toList(data);
 }
 
 export async function crearCarreraAdmin(payload: CarreraCreate): Promise<Carrera> {
@@ -25,8 +26,8 @@ export async function actualizarCarreraAdmin(id: string, payload: Partial<Carrer
 }
 
 export async function getCohortesAdmin(filters?: EstructuraFilters): Promise<Cohorte[]> {
-  const { data } = await api.get<Cohorte[]>('/api/admin/cohortes', { params: filters });
-  return data;
+  const { data } = await api.get<Cohorte[] | Paginated<Cohorte>>('/api/admin/cohortes', { params: filters });
+  return toList(data);
 }
 
 export async function crearCohorteAdmin(payload: CohorteCreate): Promise<Cohorte> {
@@ -40,8 +41,8 @@ export async function actualizarCohorteAdmin(id: string, payload: Partial<Cohort
 }
 
 export async function getMateriasAdmin(filters?: EstructuraFilters): Promise<Materia[]> {
-  const { data } = await api.get<Materia[]>('/api/admin/materias', { params: filters });
-  return data;
+  const { data } = await api.get<Materia[] | Paginated<Materia>>('/api/admin/materias', { params: filters });
+  return toList(data);
 }
 
 export async function crearMateriaAdmin(payload: MateriaCreate): Promise<Materia> {

@@ -1,9 +1,10 @@
 import api from '@/shared/services/api';
+import { toList, type Paginated } from '@/shared/services/pagination';
 import type { Carrera, Cohorte, Programa, Evaluacion } from '../types/estructura.types';
 
 export async function getCarreras(): Promise<Carrera[]> {
-  const { data } = await api.get<Carrera[]>('/api/v1/estructura/carreras');
-  return data;
+  const { data } = await api.get<Carrera[] | Paginated<Carrera>>('/api/v1/estructura/carreras');
+  return toList(data);
 }
 
 export async function crearCarrera(payload: Partial<Carrera>): Promise<Carrera> {
@@ -17,8 +18,8 @@ export async function actualizarCarrera(id: string, payload: Partial<Carrera>): 
 }
 
 export async function getCohortes(filters?: Record<string, string>): Promise<Cohorte[]> {
-  const { data } = await api.get<Cohorte[]>('/api/v1/estructura/cohortes', { params: filters });
-  return data;
+  const { data } = await api.get<Cohorte[] | Paginated<Cohorte>>('/api/v1/estructura/cohortes', { params: filters });
+  return toList(data);
 }
 
 export async function crearCohorte(payload: Partial<Cohorte>): Promise<Cohorte> {
@@ -32,8 +33,8 @@ export async function actualizarCohorte(id: string, payload: Partial<Cohorte>): 
 }
 
 export async function getProgramas(): Promise<Programa[]> {
-  const { data } = await api.get<Programa[]>('/api/v1/estructura/programas');
-  return data;
+  const { data } = await api.get<Programa[] | Paginated<Programa>>('/api/v1/estructura/programas');
+  return toList(data);
 }
 
 export async function subirPrograma(formData: FormData): Promise<Programa> {
@@ -53,8 +54,8 @@ export function descargarPrograma(id: string): string {
 }
 
 export async function getEvaluaciones(filters?: Record<string, string>): Promise<Evaluacion[]> {
-  const { data } = await api.get<Evaluacion[]>('/api/v1/estructura/evaluaciones', { params: filters });
-  return data;
+  const { data } = await api.get<Evaluacion[] | Paginated<Evaluacion>>('/api/v1/estructura/evaluaciones', { params: filters });
+  return toList(data);
 }
 
 export async function crearEvaluacion(payload: Partial<Evaluacion>): Promise<Evaluacion> {

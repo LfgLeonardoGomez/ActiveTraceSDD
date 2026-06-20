@@ -1,14 +1,15 @@
 import api from '@/shared/services/api';
+import { toList, type Paginated } from '@/shared/services/pagination';
 import type { Tarea, TareaFilters } from '../types/tareas.types';
 
 export async function getMisTareas(filters?: TareaFilters): Promise<Tarea[]> {
-  const { data } = await api.get<Tarea[]>('/api/v1/tareas/mis-tareas', { params: filters });
-  return data;
+  const { data } = await api.get<Tarea[] | Paginated<Tarea>>('/api/v1/tareas/mis-tareas', { params: filters });
+  return toList(data);
 }
 
 export async function getTareasAdmin(filters?: TareaFilters): Promise<Tarea[]> {
-  const { data } = await api.get<Tarea[]>('/api/v1/tareas', { params: filters });
-  return data;
+  const { data } = await api.get<Tarea[] | Paginated<Tarea>>('/api/v1/tareas', { params: filters });
+  return toList(data);
 }
 
 export async function asignarTarea(payload: Partial<Tarea>): Promise<Tarea> {

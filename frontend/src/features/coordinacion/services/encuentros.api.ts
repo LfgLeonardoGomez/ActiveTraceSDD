@@ -1,9 +1,10 @@
 import api from '@/shared/services/api';
+import { toList, type Paginated } from '@/shared/services/pagination';
 import type { Encuentro, SerieRecurrenteRequest, Guardia } from '../types/encuentros.types';
 
 export async function getEncuentros(filters?: Record<string, string>): Promise<Encuentro[]> {
-  const { data } = await api.get<Encuentro[]>('/api/v1/encuentros', { params: filters });
-  return data;
+  const { data } = await api.get<Encuentro[] | Paginated<Encuentro>>('/api/v1/encuentros', { params: filters });
+  return toList(data);
 }
 
 export async function crearEncuentro(payload: Partial<Encuentro>): Promise<Encuentro> {
@@ -32,8 +33,8 @@ export async function getContenidoAula(filters?: Record<string, string>): Promis
 }
 
 export async function getGuardias(filters?: Record<string, string>): Promise<Guardia[]> {
-  const { data } = await api.get<Guardia[]>('/api/v1/encuentros/guardias', { params: filters });
-  return data;
+  const { data } = await api.get<Guardia[] | Paginated<Guardia>>('/api/v1/encuentros/guardias', { params: filters });
+  return toList(data);
 }
 
 export async function registrarGuardia(payload: Partial<Guardia>): Promise<Guardia> {

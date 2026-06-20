@@ -1,4 +1,5 @@
 import api from '@/shared/services/api';
+import { toList, type Paginated } from '@/shared/services/pagination';
 import type {
   Equipo,
   UsuarioDocente,
@@ -9,13 +10,17 @@ import type {
 } from '../types/equipos.types';
 
 export async function getMisEquipos(filters?: Record<string, string>): Promise<Equipo[]> {
-  const { data } = await api.get<Equipo[]>('/api/v1/equipos/mis-equipos', { params: filters });
-  return data;
+  const { data } = await api.get<Equipo[] | Paginated<Equipo>>('/api/v1/equipos/mis-equipos', {
+    params: filters,
+  });
+  return toList(data);
 }
 
 export async function getUsuarios(): Promise<UsuarioDocente[]> {
-  const { data } = await api.get<UsuarioDocente[]>('/api/v1/equipos/usuarios');
-  return data;
+  const { data } = await api.get<UsuarioDocente[] | Paginated<UsuarioDocente>>(
+    '/api/v1/equipos/usuarios',
+  );
+  return toList(data);
 }
 
 export async function crearUsuario(payload: Partial<UsuarioDocente>): Promise<UsuarioDocente> {
@@ -29,8 +34,11 @@ export async function actualizarUsuario(id: string, payload: Partial<UsuarioDoce
 }
 
 export async function getAsignaciones(filters?: Record<string, string>): Promise<Asignacion[]> {
-  const { data } = await api.get<Asignacion[]>('/api/v1/equipos/asignaciones', { params: filters });
-  return data;
+  const { data } = await api.get<Asignacion[] | Paginated<Asignacion>>(
+    '/api/v1/equipos/asignaciones',
+    { params: filters },
+  );
+  return toList(data);
 }
 
 export async function crearAsignacion(payload: AsignacionRequest): Promise<Asignacion> {

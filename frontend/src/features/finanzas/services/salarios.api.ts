@@ -1,4 +1,5 @@
 import api from '@/shared/services/api';
+import { toList, type Paginated } from '@/shared/services/pagination';
 import type {
   SalarioBase,
   SalarioBaseCreate,
@@ -8,8 +9,8 @@ import type {
 } from '../types/salarios.types';
 
 export async function getSalarioBase(filters?: SalarioFilters): Promise<SalarioBase[]> {
-  const { data } = await api.get<SalarioBase[]>('/api/liquidaciones/salario-base', { params: filters });
-  return data;
+  const { data } = await api.get<SalarioBase[] | Paginated<SalarioBase>>('/api/liquidaciones/salario-base', { params: filters });
+  return toList(data);
 }
 
 export async function crearSalarioBase(payload: SalarioBaseCreate): Promise<SalarioBase> {
@@ -27,8 +28,8 @@ export async function eliminarSalarioBase(id: string): Promise<void> {
 }
 
 export async function getSalarioPlus(filters?: SalarioFilters): Promise<SalarioPlus[]> {
-  const { data } = await api.get<SalarioPlus[]>('/api/liquidaciones/salario-plus', { params: filters });
-  return data;
+  const { data } = await api.get<SalarioPlus[] | Paginated<SalarioPlus>>('/api/liquidaciones/salario-plus', { params: filters });
+  return toList(data);
 }
 
 export async function crearSalarioPlus(payload: SalarioPlusCreate): Promise<SalarioPlus> {

@@ -1,9 +1,10 @@
 import api from '@/shared/services/api';
+import { toList, type Paginated } from '@/shared/services/pagination';
 import type { Aviso, AvisoFormData } from '../types/avisos.types';
 
 export async function getAvisos(filters?: Record<string, string>): Promise<Aviso[]> {
-  const { data } = await api.get<Aviso[]>('/api/v1/avisos', { params: filters });
-  return data;
+  const { data } = await api.get<Aviso[] | Paginated<Aviso>>('/api/v1/avisos', { params: filters });
+  return toList(data);
 }
 
 export async function crearAviso(payload: AvisoFormData): Promise<Aviso> {

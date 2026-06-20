@@ -1,4 +1,5 @@
 import api from '@/shared/services/api';
+import { toList, type Paginated } from '@/shared/services/pagination';
 import type { MetricasColoquios, Convocatoria, ImportResult, Reserva } from '../types/coloquios.types';
 
 export async function getMetricas(): Promise<MetricasColoquios> {
@@ -7,8 +8,8 @@ export async function getMetricas(): Promise<MetricasColoquios> {
 }
 
 export async function getConvocatorias(filters?: Record<string, string>): Promise<Convocatoria[]> {
-  const { data } = await api.get<Convocatoria[]>('/api/v1/coloquios', { params: filters });
-  return data;
+  const { data } = await api.get<Convocatoria[] | Paginated<Convocatoria>>('/api/v1/coloquios', { params: filters });
+  return toList(data);
 }
 
 export async function crearConvocatoria(payload: Partial<Convocatoria>): Promise<Convocatoria> {
@@ -29,8 +30,8 @@ export async function importarAlumnos(formData: FormData): Promise<ImportResult>
 }
 
 export async function getAdminConvocatorias(): Promise<Convocatoria[]> {
-  const { data } = await api.get<Convocatoria[]>('/api/v1/coloquios/admin');
-  return data;
+  const { data } = await api.get<Convocatoria[] | Paginated<Convocatoria>>('/api/v1/coloquios/admin');
+  return toList(data);
 }
 
 export async function cerrarConvocatoria(id: string): Promise<Convocatoria> {
@@ -39,6 +40,6 @@ export async function cerrarConvocatoria(id: string): Promise<Convocatoria> {
 }
 
 export async function getReservasActivas(): Promise<Reserva[]> {
-  const { data } = await api.get<Reserva[]>('/api/v1/coloquios/reservas-activas');
-  return data;
+  const { data } = await api.get<Reserva[] | Paginated<Reserva>>('/api/v1/coloquios/reservas-activas');
+  return toList(data);
 }
