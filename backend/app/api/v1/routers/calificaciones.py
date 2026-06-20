@@ -26,7 +26,8 @@ from app.core.dependencies import (
     get_db,
     require_permission,
 )
-from app.models.estructura import Materia
+from app.models.asignacion import Asignacion
+from app.models.estructura import Cohorte, Materia
 from app.schemas.calificacion import (
     ComisionItem,
     ImportConfirmRequest,
@@ -79,30 +80,38 @@ async def listar_comisiones(
     current_user: Annotated[CurrentUser, Depends(get_current_active_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> list[ComisionItem]:
-    """List the tenant's active materias as commissions.
+    """List the current user's Asignaciones that have a materia_id as comisiones.
 
-    DEMO STUB: the domain has no Comisión entity yet (materia↔cohorte pairing
-    is open question PA-01), so one item is returned per active Materia with a
-    placeholder cohorte. Tenant scope comes exclusively from the verified JWT.
+    Domain decision (ratified): comision = Asignacion (docente↔materia↔cohorte).
+    The `id` field is the asignacion_id consumed by the analytics endpoints
+    (atrasados/ranking/reporte-rapido/notas-finales) to resolve the
+    (usuario_importador_id, materia_id) scope per RN-04.
+
+    PA-01 (materia↔cohorte pairing) is interpreted, not closed: we return only
+    asignaciones where materia_id IS NOT NULL. Tenant scope and identity come
+    exclusively from the verified JWT.
     """
-    result = await db.execute(
-        select(Materia)
+    rows = await db.execute(
+        select(Asignacion, Materia.nombre, Cohorte.nombre)
+        .join(Materia, Materia.id == Asignacion.materia_id)
+        .outerjoin(Cohorte, Cohorte.id == Asignacion.cohorte_id)
         .where(
-            Materia.tenant_id == current_user.tenant_id,
+            Asignacion.tenant_id == current_user.tenant_id,
+            Asignacion.usuario_id == current_user.id,
+            Asignacion.materia_id.isnot(None),
+            Asignacion.deleted_at.is_(None),
             Materia.deleted_at.is_(None),
-            Materia.estado == "Activa",
         )
         .order_by(Materia.nombre)
     )
-    materias = result.scalars().all()
     return [
         ComisionItem(
-            id=str(materia.id),
-            materia_id=str(materia.id),
-            materia_nombre=materia.nombre,
-            cohorte_nombre="—",
+            id=str(asignacion.id),
+            materia_id=str(asignacion.materia_id),
+            materia_nombre=materia_nombre or "",
+            cohorte_nombre=cohorte_nombre or "",
         )
-        for materia in materias
+        for asignacion, materia_nombre, cohorte_nombre in rows
     ]
 
 
