@@ -205,6 +205,20 @@ async def export_notas_finales(
 
 
 @router.get(
+    "/tps-sin-corregir",
+    summary="TPs textuales sin nota registrada (datos)",
+)
+async def get_tps_sin_corregir(
+    asignacion_id: UUID,
+    perm: Annotated[PermissionContext, Depends(require_permission("atrasados:ver"))] = None,
+    current_user: Annotated[CurrentUser, Depends(get_current_active_user)] = None,
+    db: Annotated[AsyncSession, Depends(get_db)] = None,
+) -> list[dict]:
+    service = _make_service(db, current_user)
+    return await service.get_tps_sin_corregir(asignacion_id, perm)
+
+
+@router.get(
     "/tps-sin-corregir/export",
     summary="Exportar TPs sin corregir en CSV",
 )

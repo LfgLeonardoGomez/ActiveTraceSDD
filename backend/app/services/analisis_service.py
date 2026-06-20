@@ -18,6 +18,7 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.encryption import decrypt_pii
 from app.repositories.analisis_repository import AnalisisRepository
 from app.repositories.asignaciones import AsignacionRepository
 from app.schemas.analisis import (
@@ -33,6 +34,16 @@ from app.schemas.analisis import (
     ReporteRapidoSchema,
 )
 from app.schemas.rbac_schema import PermissionContext
+
+
+def _safe_decrypt(value: str | None) -> str | None:
+    """Desencripta PII (email) tolerando filas legacy en texto plano."""
+    if not value:
+        return value
+    try:
+        return decrypt_pii(value)
+    except Exception:
+        return value
 
 
 class AnalisisService:
@@ -95,7 +106,7 @@ class AnalisisService:
             AlumnoAtrasadoSchema(
                 entrada_padron_id=row["entrada_padron_id"],
                 alumno_nombre=row["alumno_nombre"],
-                alumno_email=row["alumno_email"],
+                alumno_email=_safe_decrypt(row["alumno_email"]),
                 motivo=MotivoAtrasado(row["motivo"]),
                 actividades_faltantes_count=row["actividades_faltantes_count"],
                 actividades_reprobadas_count=row["actividades_reprobadas_count"],
@@ -218,7 +229,7 @@ class AnalisisService:
             NotaFinalItemSchema(
                 entrada_padron_id=row["entrada_padron_id"],
                 alumno_nombre=row["alumno_nombre"],
-                alumno_email=row["alumno_email"],
+                alumno_email=_safe_decrypt(row["alumno_email"]),
                 nota_final=row["nota_final"],
             )
             for row in rows
@@ -237,7 +248,11 @@ class AnalisisService:
         if permission_ctx.is_propio:
             await self._verificar_titularidad(asignacion_id)
 
-        return await self._repo.get_tps_sin_corregir(asignacion_id)
+        rows = await self._repo.get_tps_sin_corregir(asignacion_id)
+        for row in rows:
+            if "alumno_email" in row:
+                row["alumno_email"] = _safe_decrypt(row["alumno_email"])
+        return rows
 
     # ------------------------------------------------------------------
     # 4.6: Monitor general (COORDINADOR/ADMIN únicamente)
@@ -330,7 +345,7 @@ class AnalisisService:
             MonitorItemSchema(
                 entrada_padron_id=row["entrada_padron_id"],
                 alumno_nombre=row["alumno_nombre"],
-                email=row["email"],
+                email=_safe_decrypt(row["email"]),
                 materia_id=row["materia_id"],
                 materia_nombre=row["materia_nombre"],
                 actividades_aprobadas=row["actividades_aprobadas"],
