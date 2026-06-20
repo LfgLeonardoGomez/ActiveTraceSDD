@@ -1,11 +1,13 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 import { usePermissions } from '@/shared/hooks/usePermissions';
 
 interface PermissionGuardProps {
   requiredPermissions: string | string[];
   requireAll?: boolean;
   redirectTo?: string;
-  children: React.ReactNode;
+  // Optional: when used as a wrapper it renders children; when used as a layout
+  // route (no children) it renders the nested routes via <Outlet />.
+  children?: React.ReactNode;
 }
 
 export default function PermissionGuard({
@@ -27,5 +29,5 @@ export default function PermissionGuard({
     return <Navigate to={redirectTo} replace />;
   }
 
-  return <>{children}</>;
+  return <>{children ?? <Outlet />}</>;
 }
