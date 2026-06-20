@@ -10,9 +10,10 @@ export function ComisionSelector() {
   const { data: comisiones, isLoading, isError, refetch } = useComisiones();
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const materiaId = e.target.value;
-    if (materiaId) {
-      navigate(`/comisiones/${materiaId}`);
+    // The route param is the comisión id = asignacion_id (analytics key off it).
+    const comisionId = e.target.value;
+    if (comisionId) {
+      navigate(`/comisiones/${comisionId}`);
     }
   };
 
@@ -69,7 +70,7 @@ export function ComisionSelector() {
           Seleccioná una comisión...
         </option>
         {comisiones.map((c) => (
-          <option key={c.materia_id} value={c.materia_id}>
+          <option key={c.id} value={c.id}>
             {c.materia_nombre} — {c.cohorte_nombre}
           </option>
         ))}
