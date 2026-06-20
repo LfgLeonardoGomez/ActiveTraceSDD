@@ -9,11 +9,37 @@ import type {
   ClonarEquipoRequest,
 } from '../types/equipos.types';
 
+// Raw shape returned by GET /api/v1/equipos/mis-equipos (per-assignment row).
+interface MisEquiposApiItem {
+  id: string;
+  rol: string | null;
+  desde: string | null;
+  hasta: string | null;
+  materia_id: string | null;
+  cohorte_id: string | null;
+  estado_vigencia: string | null;
+  materia_nombre: string | null;
+  carrera_nombre: string | null;
+  cohorte_nombre: string | null;
+}
+
 export async function getMisEquipos(filters?: Record<string, string>): Promise<Equipo[]> {
-  const { data } = await api.get<Equipo[] | Paginated<Equipo>>('/api/v1/equipos/mis-equipos', {
-    params: filters,
-  });
-  return toList(data);
+  const { data } = await api.get<MisEquiposApiItem[] | Paginated<MisEquiposApiItem>>(
+    '/api/v1/equipos/mis-equipos',
+    { params: filters },
+  );
+  return toList(data).map((item) => ({
+    id: item.id,
+    materia: item.materia_nombre ?? '—',
+    materia_id: item.materia_id ?? '',
+    carrera: item.carrera_nombre ?? '—',
+    cohorte: item.cohorte_nombre ?? '—',
+    cohorte_id: item.cohorte_id ?? '',
+    roles: item.rol ? [item.rol] : [],
+    vigencia_desde: item.desde ?? '—',
+    vigencia_hasta: item.hasta ?? '—',
+    estado: item.estado_vigencia ?? '—',
+  }));
 }
 
 export async function getUsuarios(): Promise<UsuarioDocente[]> {
