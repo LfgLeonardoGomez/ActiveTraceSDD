@@ -3,7 +3,7 @@
 Todos los schemas tienen extra='forbid' (regla dura del proyecto).
 """
 
-from datetime import date
+from datetime import date, datetime
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -61,8 +61,8 @@ class SlotRead(BaseModel):
     cant_semanas: int
     meet_url: str | None = None
     vigencia: str | None = None
-    created_at: str | None = None
-    updated_at: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
 class PaginatedSlotResponse(BaseModel):
@@ -123,8 +123,8 @@ class InstanciaRead(BaseModel):
     meet_url: str | None = None
     video_url: str | None = None
     comentario: str | None = None
-    created_at: str | None = None
-    updated_at: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
 class InstanciaFilterParams(BaseModel):
